@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>CRISIS — Sala de Diretoria | Administração UNIARA</title>
+<!-- MediaPipe Hands -->
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+
+<style>
+:root{
+  --bg:#050507; --bg2:#0a0a12;
+  --ink:#f0f0f5; --muted:#6b6b80;
+  /* Cores Base UNIARA */
+  --uniara-red:#ED1C24; --neon-cyan:#00f0ff;
+  --neon-green:#39ff14; --neon-amber:#ffaa00; --neon-red:#ff2222; --neon-magenta:#ff006e;
+  --cash:#39ff14; --moral:#00f0ff; --market:#ffaa00; --risk:#ED1C24;
+  
+  /* Variáveis dinâmicas das caixas de decisão */
+  --dec-a-color:#ED1C24; --dec-a-rgb:237,28,36;
+  --dec-b-color:#00f0ff; --dec-b-rgb:0,240,255;
+}
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Courier New',monospace;
+  user-select:none;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--ink);}
+body{cursor:none;}
+
+#bg-canvas{position:fixed;inset:0;z-index:0;}
+#webcam{position:fixed;bottom:15px;right:15px;width:160px;height:120px;z-index:5;opacity:0.4; transform: scaleX(-1); border: 1px solid var(--uniara-red); border-radius: 4px;}
+
+/* Logo UNIARA */
+#uniara-logo{height:60px;margin-bottom:24px;filter:drop-shadow(0 0 8px rgba(237,28,36,0.4));}
+#uniara-watermark{position:fixed;top:20px;right:20px;height:35px;z-index:4;opacity:0.4;filter:grayscale(100%) brightness(150%);}
+#uniara-logo-end{height:50px;margin-bottom:16px;filter:drop-shadow(0 0 8px rgba(237,28,36,0.4));}
+
+.vignette{position:fixed;inset:0;z-index:1;pointer-events:none;
+  background:radial-gradient(ellipse at center,transparent 40%,rgba(0,0,0,.85) 100%);}
+.scanlines{position:fixed;inset:0;z-index:2;pointer-events:none;opacity:.08;
+  background:repeating-linear-gradient(0deg,#000 0,#000 1px,transparent 1px,transparent 3px);}
+
+#cursor{position:fixed;width:40px;height:40px;border:2px solid var(--uniara-red);
+  border-radius:50%;z-index:99;pointer-events:none;transform:translate(-50%,-50%);
+  transition:transform .1s, background .2s, border-color .2s; mix-blend-mode: screen;}
+#cursor.pinch{background:var(--neon-green); transform:translate(-50%,-50%) scale(0.6); border-color:var(--neon-green); box-shadow: 0 0 20px var(--neon-green);}
+#cursor.hidden{display:none;}
+
+.app{position:fixed;inset:0;z-index:3;display:flex;flex-direction:column;padding:24px;}
+
+.hud{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px;}
+.metric{background:rgba(10,10,18,.75);border:1px solid rgba(255,255,255,.08);
+  border-radius:4px;padding:10px 12px;backdrop-filter:blur(6px);position:relative;overflow:hidden;}
+.metric .lbl{font-size:.62rem;color:var(--muted);letter-spacing:.18em;text-transform:uppercase;}
+.metric .val{font-size:1.5rem;font-weight:700;margin-top:2px;transition:color .3s;}
+.metric .bar{height:3px;margin-top:6px;background:rgba(255,255,255,.08);border-radius:2px;overflow:hidden;}
+.metric .fill{height:100%;width:100%;transition:width .6s cubic-bezier(.34,1.56,.64,1);}
+.metric.cash .val{color:var(--cash);} .metric.cash .fill{background:var(--cash);}
+.metric.moral .val{color:var(--moral);} .metric.moral .fill{background:var(--moral);}
+.metric.market .val{color:var(--market);} .metric.market .fill{background:var(--market);}
+.metric.risk .val{color:var(--risk);} .metric.risk .fill{background:var(--risk);}
+.metric.flash-up{animation:flashUp .6s;}
+.metric.flash-down{animation:flashDown .6s;}
+@keyframes flashUp{0%,100%{background:rgba(10,10,18,.75);}30%{background:rgba(57,255,20,.25);}}
+@keyframes flashDown{0%,100%{background:rgba(10,10,18,.75);}30%{background:rgba(237,28,36,.25);}}
+
+.timer-wrap{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
+.timer-label{font-size:.7rem;color:var(--muted);letter-spacing:.2em;text-transform:uppercase;}
+.timer-val{font-size:1.4rem;font-weight:700;color:var(--uniara-red);}
+.timer-val.critical{color:var(--neon-red);animation:blink .5s infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:.3;}}
+
+.scenario{flex-grow:1;display:flex;flex-direction:column;justify-content:center;
+  background:rgba(10,10,18,.6);border:1px solid rgba(237,28,36,.2);border-radius:6px;
+  padding:32px;backdrop-filter:blur(8px);position:relative;}
+.scenario-tag{position:absolute;top:-12px;left:24px;background:var(--bg);
+  color:var(--uniara-red);font-size:.7rem;letter-spacing:.25em;padding:2px 12px;border:1px solid var(--uniara-red);}
+.scenario-text{font-size:1.7rem;font-weight:700;line-height:1.35;letter-spacing:-.01em;
+  text-shadow:0 0 20px rgba(237,28,36,.15);}
+.scenario-text.glitch{animation:glitch .4s steps(2) 3;}
+@keyframes glitch{
+  0%{text-shadow:2px 0 var(--uniara-red),-2px 0 var(--neon-cyan);}
+  25%{text-shadow:-2px 0 var(--uniara-red),2px 0 var(--neon-cyan);transform:translateX(2px);}
+  50%{text-shadow:2px 0 var(--neon-green),-2px 0 var(--neon-amber);transform:translateX(-2px);}
+  75%{text-shadow:-1px 0 var(--uniara-red),1px 0 var(--neon-cyan);}
+  100%{text-shadow:0 0 20px rgba(237,28,36,.15);transform:translateX(0);}
+}
+.hint{font-size:.85rem;color:var(--muted);margin-top:14px;letter-spacing:.05em;}
+
+/* Decisões Dinâmicas */
+.decisions{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:24px;}
+.dec{background:rgba(10,10,18,.7);border:2px solid; border-radius:4px;
+  padding:22px 20px;cursor:pointer;text-align:left;transition:all .3s;position:relative;overflow:hidden;}
+.dec:hover{transform:translateY(-2px);}
+.dec .dec-tag{font-size:.65rem;letter-spacing:.2em;margin-bottom:8px;}
+.dec .dec-text{font-size:1.05rem;font-weight:600;line-height:1.3;}
+
+.dec.a { border-color: rgba(var(--dec-a-rgb), 0.4); background: rgba(var(--dec-a-rgb), 0.05); }
+.dec.a .dec-tag { color: var(--dec-a-color); }
+.dec.a .dec-text { color: #ffffff; text-shadow: 0 0 8px rgba(var(--dec-a-rgb), 0.5); }
+.dec.a:hover { border-color: var(--dec-a-color); box-shadow: 0 8px 30px rgba(var(--dec-a-rgb), .25); background: rgba(var(--dec-a-rgb), 0.1); }
+
+.dec.b { border-color: rgba(var(--dec-b-rgb), 0.4); background: rgba(var(--dec-b-rgb), 0.05); }
+.dec.b .dec-tag { color: var(--dec-b-color); }
+.dec.b .dec-text { color: #ffffff; text-shadow: 0 0 8px rgba(var(--dec-b-rgb), 0.5); }
+.dec.b:hover { border-color: var(--dec-b-color); box-shadow: 0 8px 30px rgba(var(--dec-b-rgb), .25); background: rgba(var(--dec-b-rgb), 0.1); }
+
+.app.shake{animation:shake .5s cubic-bezier(.36,.07,.19,.97);}
+@keyframes shake{10%,90%{transform:translate3d(-2px,0,0);}20%,80%{transform:translate3d(4px,0,0);}
+  30%,50%,70%{transform:translate3d(-8px,0,0);}40%,60%{transform:translate3d(8px,0,0);}}
+
+.flash-overlay{position:fixed;inset:0;z-index:4;pointer-events:none;opacity:0;}
+.flash-overlay.success{background:radial-gradient(circle,rgba(57,255,20,.4),transparent 70%);}
+.flash-overlay.error{background:radial-gradient(circle,rgba(237,28,36,.5),transparent 70%);}
+.flash-overlay.crisis{background:radial-gradient(circle,rgba(255,170,0,.5),transparent 70%);}
+.flash-overlay.show{animation:flash .5s;}
+@keyframes flash{0%{opacity:0;}20%{opacity:1;}100%{opacity:0;}}
+
+.screen{position:fixed;inset:0;z-index:10;display:flex;flex-direction:column;
+  justify-content:center;align-items:center;text-align:center;padding:40px;
+  background:rgba(5,5,7,.92);backdrop-filter:blur(10px);}
+.screen.hidden{display:none;}
+.screen h1{font-size:4rem;font-weight:900;letter-spacing:-.02em;line-height:1;margin-bottom:8px;}
+.screen h1 .glitch-title{position:relative;display:inline-block;}
+.screen h1 .glitch-title::before,.screen h1 .glitch-title::after{
+  content:attr(data-text);position:absolute;top:0;left:0;width:100%;}
+.screen h1 .glitch-title::before{color:var(--uniara-red);animation:glitchA 2.5s infinite;}
+.screen h1 .glitch-title::after{color:var(--neon-cyan);animation:glitchB 2.5s infinite;}
+@keyframes glitchA{0%,100%{clip-path:inset(0 0 95% 0);transform:translate(-2px,0);}20%{clip-path:inset(40% 0 40% 0);transform:translate(2px,0);}}
+@keyframes glitchB{0%,100%{clip-path:inset(85% 0 5% 0);transform:translate(2px,0);}20%{clip-path:inset(20% 0 60% 0);transform:translate(-2px,0);}}
+.screen .lead{font-size:1.15rem;color:var(--muted);max-width:560px;line-height:1.5;margin-bottom:28px;}
+.btn-start{padding:18px 60px;font-size:1.2rem;font-weight:700;letter-spacing:.15em;
+  background:transparent;color:var(--uniara-red);border:2px solid var(--uniara-red);
+  border-radius:4px;cursor:pointer;transition:all .2s;text-transform:uppercase;}
+.btn-start:hover{background:var(--uniara-red);color:var(--bg);box-shadow:0 0 40px rgba(237,28,36,.5);}
+
+.report{background:rgba(10,10,18,.8);border:1px solid rgba(237,28,36,.3);
+  border-radius:6px;padding:28px;max-width:520px;margin-bottom:20px;}
+.report h2{font-size:1rem;color:var(--uniara-red);letter-spacing:.2em;margin-bottom:16px;}
+.report-rows{display:grid;gap:10px;}
+.report-row{display:flex;justify-content:space-between;font-size:1rem;}
+.report-row .k{color:var(--muted);} .report-row .v{font-weight:700;}
+.profile{font-size:1.3rem;font-weight:700;color:var(--neon-amber);margin:16px 0;
+  text-shadow:0 0 20px rgba(255,170,0,.3);}
+.verdict{font-size:.95rem;color:var(--ink);line-height:1.5;max-width:520px;margin-bottom:24px;opacity:.85;}
+.qr-final{margin:14px 0 24px;background:#fff;padding:10px;border-radius:4px;}
+.audio-note{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);
+  font-size:.65rem;color:var(--muted);letter-spacing:.15em;z-index:5;opacity:.5;}
+</style>
+</head>
+<body>
+<canvas id="bg-canvas"></canvas>
+<video id="webcam" autoplay playsinline muted></video>
+<img src="logo-uniara.png" alt="UNIARA" id="uniara-watermark" onerror="this.style.display='none'">
+<div id="cursor" class="hidden"></div>
+<div class="vignette"></div>
+<div class="scanlines"></div>
+<div class="flash-overlay" id="flash"></div>
+
+<!-- Tela inicial -->
+<div class="screen" id="start-screen">
+  <img src="logo-uniara.png" alt="UNIARA" id="uniara-logo" onerror="this.style.display='none'">
+  <h1><span class="glitch-title" data-text="CRISIS">CRISIS</span></h1>
+  <p class="lead">A empresa está sangrando. Caixa despencando. Moral no fundo do poço. Você tem <b style="color:var(--uniara-red)">90 segundos</b> para provar que nasceu para administrar. Conheça o curso de Administração da UNIARA na prática.</p>
+  <button class="btn-start" id="start-btn">▶ ASSUMIR O COMANDO</button>
+  <p style="font-size:.7rem;color:var(--muted);margin-top:24px;letter-spacing:.1em;">USE A MÃO PARA MOVER O CURSOR · JUNTE INDICADOR E POLEGAR PARA CLICAR 🖐️</p>
+  <p style="font-size:.7rem;color:var(--muted);margin-top:8px;letter-spacing:.1em;">USE FONES DE OUVIDO PARA EXPERIÊNCIA COMPLETA 🎧</p>
+</div>
+
+<!-- App do jogo -->
+<div class="app" id="game-app" style="display:none;">
+  <div class="hud">
+    <div class="metric cash"><div class="lbl">◼ CAIXA</div><div class="val" id="m-cash">100</div><div class="bar"><div class="fill" id="f-cash"></div></div></div>
+    <div class="metric moral"><div class="lbl">◼ MORAL</div><div class="val" id="m-moral">100</div><div class="bar"><div class="fill" id="f-moral"></div></div></div>
+    <div class="metric market"><div class="lbl">◼ MARKET</div><div class="val" id="m-market">100</div><div class="bar"><div class="fill" id="f-market"></div></div></div>
+    <div class="metric risk"><div class="lbl">◼ RISCO</div><div class="val" id="m-risk">30</div><div class="bar"><div class="fill" id="f-risk" style="width:30%"></div></div></div>
+  </div>
+  <div class="timer-wrap">
+    <span class="timer-label">⏱ TEMPO RESTANTE</span>
+    <span class="timer-val" id="timer">90</span>
+  </div>
+  <div class="scenario" id="scenario">
+    <span class="scenario-tag" id="sc-tag">CENÁRIO 01</span>
+    <div class="scenario-text" id="sc-text">Carregando crise...</div>
+    <div class="hint" id="sc-hint">Escolha uma ação. Não há caminho seguro. (Pinçar para selecionar)</div>
+    <div class="decisions">
+      <button class="dec a" id="dec-a"><div class="dec-tag">▶ AÇÃO A</div><div class="dec-text" id="dec-a-text"></div></button>
+      <button class="dec b" id="dec-b"><div class="dec-tag">▶ AÇÃO B</div><div class="dec-text" id="dec-b-text"></div></button>
+    </div>
+  </div>
+</div>
+
+<!-- Tela final -->
+<div class="screen hidden" id="end-screen">
+  <img src="logo-uniara.png" alt="UNIARA" id="uniara-logo-end" onerror="this.style.display='none'">
+  <h1><span class="glitch-title" id="end-title-text" data-text="RELATÓRIO">RELATÓRIO</span></h1>
+  <div class="report">
+    <h2>◼ BALANÇO FINAL DO CEO</h2>
+    <div class="report-rows" id="report-rows"></div>
+  </div>
+  <div class="profile" id="profile"></div>
+  <p class="verdict" id="verdict"></p>
+  <div class="qr-final" id="qr-final"></div>
+  <button class="btn-start" id="restart-btn">↻ NOVA RODADA</button>
+</div>
+
+<div class="audio-note" id="audio-note">EXPERIÊNCIA SENSORIAL INTERATIVA · ADMINISTRAÇÃO UNIARA</div>
+
+<script>
+/* CENÁRIOS */
+const scenarios=[
+  {tag:"CENÁRIO 01 — GUERRA DE PREÇOS", text:"Um concorrente lançou um produto idêntico 30% mais barato. Suas vendas despencaram esta semana.", a:{t:"Cortar preços e entrar em guerra.",d:{cash:-18,moral:-5,market:-8,risk:+15}}, b:{t:"Investir em diferenciação e branding.",d:{cash:-12,moral:+8,market:+12,risk:+5}}, skill:"Visão estratégica"},
+  {tag:"CENÁRIO 02 — ÊNDOXO NA EQUIPE", text:"Seu melhor gerente está sendo assediado por um cliente importante. A equipe sabe. Ninguém fala.", a:{t:"Ignorar — o cliente paga o salário.",d:{cash:+5,moral:-25,market:0,risk:+20}}, b:{t:"Confrontar o cliente e proteger a equipe.",d:{cash:-15,moral:+20,market:-5,risk:+5}}, skill:"Liderança e ética"},
+  {tag:"CENÁRIO 03 — CASH FLOW CRÍTICO", text:"O caixa cobre apenas 3 semanas. Um grande cliente atrasa pagamento. Fornecedores batem na porta.", a:{t:"Pegar empréstimo bancário a juros altos.",d:{cash:+25,moral:+5,market:0,risk:+25}}, b:{t:"Renegociar prazos com fornecedores.",d:{cash:-5,moral:-8,market:-3,risk:-5}}, skill:"Gestão financeira"},
+  {tag:"CENÁRIO 04 — CRISE DE IMAGEM", text:"Um post viralizou acusando sua empresa de mau atendimento. Imprensa ligou. Ações em queda.", a:{t:"Nota pública imediata assumindo o erro.",d:{cash:-8,moral:+12,market:+8,risk:-10}}, b:{t:"Silêncio estratégico — deixar a poeira baixar.",d:{cash:0,moral:-10,market:-18,risk:+15}}, skill:"Comunicação e marketing"},
+  {tag:"CENÁRIO 05 — TECNOLOGIA DISRUPTIVA", text:"Uma startup lançou IA que substitui metade do seu serviço. Seu modelo pode ficar obsoleto em 6 meses.", a:{t:"Adquirir a startup antes dos concorrentes.",d:{cash:-30,moral:+5,market:+22,risk:+20}}, b:{t:"Investir em P&D interna para competir.",d:{cash:-15,moral:+8,market:+5,risk:+5}}, skill:"Inovação e transformação digital"},
+  {tag:"CENÁRIO 06 — GREVE ANUNCIADA", text:"Sindicato ameaça greve geral. Produção para amanhã. Contratos de entrega em risco.", a:{t:"Negociar aumento salarial imediato.",d:{cash:-22,moral:+18,market:-3,risk:-10}}, b:{t:"Contratar mão de obra temporária.",d:{cash:-10,moral:-22,market:-8,risk:+18}}, skill:"Gestão de pessoas"},
+  {tag:"CENÁRIO 07 — EXPANSÃO OU CAUTELA", text:"Investidor oferece capital para abrir 5 filiais. Mercado em alta, mas economia instável.", a:{t:"Aceitar e expandir agressivamente.",d:{cash:+30,moral:+10,market:+18,risk:+30}}, b:{t:"Recusar e consolidar operação atual.",d:{cash:-5,moral:-5,market:-10,risk:-15}}, skill:"Gestão de risco"},
+  {tag:"CENÁRIO 08 — PRODUCT HUNT", text:"Funcionário sênior quer sair e abrir concorrente. Levou contatos e know-how da empresa.", a:{t:"Processar judicialmente por quebra de contrato.",d:{cash:-12,moral:+5,market:-8,risk:+10}}, b:{t:"Oferecer sociedade para mantê-lo dentro.",d:{cash:-8,moral:+12,market:+5,risk:+5}}, skill:"Estratégia e negociação"}
+];
+
+/* PALETAS DE CORES DINÂMICAS PARA AS CAIXAS */
+const colorThemes = [
+  { a:'#ED1C24', a_rgb:'237,28,36', b:'#00f0ff', b_rgb:'0,240,255' }, // Vermelho UNIARA & Ciano
+  { a:'#39ff14', a_rgb:'57,255,20',  b:'#ffaa00', b_rgb:'255,170,0' }, // Verde & Âmbar
+  { a:'#00f0ff', a_rgb:'0,240,255',  b:'#ED1C24', b_rgb:'237,28,36' }, // Ciano & Vermelho
+  { a:'#ffaa00', a_rgb:'255,170,0',  b:'#39ff14', b_rgb:'57,255,20' }, // Âmbar & Verde
+  { a:'#ff006e', a_rgb:'255,0,110',  b:'#39ff14', b_rgb:'57,255,20' }  // Magenta & Verde
+];
+
+let metrics={cash:100,moral:100,market:100,risk:30};
+let timeLeft=90,timerInterval,locked=false,currentIdx=0,scenarioOrder=[];
+
+/* ÁUDIO */
+let audioCtx,masterGain,droneOscs=[];
+function initAudio(){
+  if(audioCtx) return;
+  audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+  masterGain=audioCtx.createGain(); masterGain.gain.value=0.5;
+  const conv=audioCtx.createConvolver(); const len=audioCtx.sampleRate*2;
+  const ir=audioCtx.createBuffer(2,len,audioCtx.sampleRate);
+  for(let ch=0;ch<2;ch++){const data=ir.getChannelData(ch); for(let i=0;i<len;i++){data[i]=(Math.random()*2-1)*Math.pow(1-i/len,2);}}
+  conv.buffer=ir; const revGain=audioCtx.createGain(); revGain.gain.value=0.3;
+  masterGain.connect(audioCtx.destination); masterGain.connect(conv); conv.connect(revGain); revGain.connect(audioCtx.destination);
+  [55,82.5].forEach((f,i)=>{
+    const osc=audioCtx.createOscillator(); osc.type='sine'; osc.frequency.value=f;
+    const g=audioCtx.createGain(); g.gain.value=0.08;
+    const lfo=audioCtx.createOscillator(); lfo.frequency.value=0.1+i*0.05;
+    const lfoG=audioCtx.createGain(); lfoG.gain.value=0.04;
+    lfo.connect(lfoG); lfoG.connect(g.gain); osc.connect(g); g.connect(masterGain);
+    osc.start(); lfo.start(); droneOscs.push(osc);
+  });
+}
+function tone(freq,dur,type='sine',vol=0.2,delay=0){
+  if(!audioCtx) return; const o=audioCtx.createOscillator(); const g=audioCtx.createGain();
+  o.type=type; o.frequency.value=freq; const t=audioCtx.currentTime+delay;
+  g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(vol,t+0.01); g.gain.exponentialRampToValueAtTime(0.001,t+dur);
+  o.connect(g); g.connect(masterGain); o.start(t); o.stop(t+dur);
+}
+function playSuccess(){[523,659,784,1047].forEach((f,i)=>tone(f,0.3,'triangle',0.18,i*0.06));}
+function playError(){[220,196,174,146].forEach((f,i)=>tone(f,0.4,'sawtooth',0.15,i*0.08));}
+function playCrisis(){tone(80,0.6,'square',0.25,0); tone(60,0.8,'sawtooth',0.2,0.1); if(!audioCtx) return; const buf=audioCtx.createBuffer(1,audioCtx.sampleRate*0.4,audioCtx.sampleRate); const d=buf.getChannelData(0); for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,2); const src=audioCtx.createBufferSource(); src.buffer=buf; const g=audioCtx.createGain(); g.gain.value=0.15; src.connect(g); g.connect(masterGain); src.start();}
+function playFinal(win){ if(win){[523,659,784,1047,1319].forEach((f,i)=>tone(f,0.6,'triangle',0.2,i*0.12));} else{[196,174,155,130,98].forEach((f,i)=>tone(f,0.7,'sawtooth',0.18,i*0.15));} }
+
+/* CANVAS */
+const canvas=document.getElementById('bg-canvas'); const ctx=canvas.getContext('2d');
+let W,H,particles=[],mouse={x:-1000,y:-1000};
+function resize(){W=canvas.width=innerWidth;H=canvas.height=innerHeight;}
+resize(); addEventListener('resize',resize);
+function initParticles(){ particles=[]; const n=Math.min(160,Math.floor(W*H/9000)); for(let i=0;i<n;i++){ particles.push({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-0.5)*0.4,vy:(Math.random()-0.5)*0.4,r:Math.random()*1.8+0.5,baseR:Math.random()*1.8+0.5}); } }
+initParticles();
+let particleColor={r:237,g:28,b:36};
+function setMood(mood){ if(mood==='success') particleColor={r:57,g:255,b:20}; else if(mood==='error') particleColor={r:237,g:28,b:36}; else if(mood==='crisis') particleColor={r:255,g:170,b:0}; else particleColor={r:237,g:28,b:36}; }
+function burst(x,y,count=40){ for(let i=0;i<count;i++){ const a=Math.random()*Math.PI*2; const sp=Math.random()*6+2; particles.push({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,r:Math.random()*3+1,baseR:Math.random()*3+1,life:1,burst:true}); } }
+function animate(){
+  ctx.fillStyle='rgba(5,5,7,0.15)'; ctx.fillRect(0,0,W,H);
+  for(let i=particles.length-1;i>=0;i--){
+    const p=particles[i]; p.x+=p.vx; p.y+=p.vy;
+    if(p.burst){p.vx*=0.96; p.vy*=0.96; p.life-=0.02; if(p.life<=0){particles.splice(i,1);continue;}}
+    if(p.x<0||p.x>W) p.vx*=-1; if(p.y<0||p.y>H) p.vy*=-1;
+    p.x=Math.max(0,Math.min(W,p.x)); p.y=Math.max(0,Math.min(H,p.y));
+    const dx=mouse.x-p.x, dy=mouse.y-p.y, d=Math.sqrt(dx*dx+dy*dy);
+    if(d<150){p.vx+=dx/d*0.05; p.vy+=dy/d*0.05;}
+    const sp=Math.sqrt(p.vx*p.vx+p.vy*p.vy); if(sp>3){p.vx=p.vx/sp*3; p.vy=p.vy/sp*3;}
+    const r=p.burst?p.r*p.life:p.r;
+    ctx.beginPath(); ctx.arc(p.x,p.y,Math.max(0.1,r),0,Math.PI*2);
+    ctx.fillStyle=`rgba(${particleColor.r},${particleColor.g},${particleColor.b},${p.burst?p.life:0.6})`; ctx.fill();
+  }
+  for(let i=0;i<particles.length;i++){ for(let j=i+1;j<particles.length;j++){ const dx=particles[i].x-particles[j].x, dy=particles[i].y-particles[j].y; const d=Math.sqrt(dx*dx+dy*dy); if(d<100){ ctx.beginPath(); ctx.moveTo(particles[i].x,particles[i].y); ctx.lineTo(particles[j].x,particles[j].y); ctx.strokeStyle=`rgba(${particleColor.r},${particleColor.g},${particleColor.b},${0.15*(1-d/100)})`; ctx.lineWidth=0.5; ctx.stroke(); } } }
+  requestAnimationFrame(animate);
+}
+animate();
+
+/* MEDIAPIPE E CÂMERA */
+const videoElement = document.getElementById('webcam');
+const cursor = document.getElementById('cursor');
+let hands, cameraActive = false;
+let isPinching = false, pinchCooldown = false;
+
+async function initMediaPipe() {
+  if (typeof Hands === 'undefined') {
+    console.error("MediaPipe não carregou.");
+    document.body.style.cursor = 'crosshair';
+    return;
+  }
+
+  hands = new Hands({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`});
+  hands.setOptions({ maxNumHands: 1, modelComplexity: 1, minDetectionConfidence: 0.6, minTrackingConfidence: 0.6 });
+  hands.onResults(onHandResults);
+
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: { width: 640, height: 480, facingMode: 'user' }
+    });
+    videoElement.srcObject = stream;
+    await videoElement.play();
+    cameraActive = true;
+
+    const sendFrame = async () => {
+      if (cameraActive && videoElement.readyState >= 2) {
+        await hands.send({ image: videoElement });
+      }
+      requestAnimationFrame(sendFrame);
+    };
+    sendFrame();
+
+  } catch (e) {
+    console.error("Erro ao acessar a câmera:", e);
+    document.body.style.cursor = 'crosshair';
+    window.addEventListener('click', e => {
+      cursor.style.left = `${e.clientX}px`;
+      cursor.style.top = `${e.clientY}px`;
+      cursor.classList.remove('hidden');
+      cursor.classList.add('pinch');
+      setTimeout(() => cursor.classList.remove('pinch'), 200);
+      handlePinch(e.clientX, e.clientY);
+    });
+  }
+}
+
+function onHandResults(results) {
+  if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+    const landmarks = results.multiHandLandmarks[0];
+    const indexTip = landmarks[8];
+    
+    const x = (1 - indexTip.x) * W;
+    const y = indexTip.y * H;
+    
+    mouse.x = x;
+    mouse.y = y;
+    
+    cursor.style.left = `${x}px`;
+    cursor.style.top = `${y}px`;
+    cursor.classList.remove('hidden');
+
+    const thumbTip = landmarks[4];
+    const dx = indexTip.x - thumbTip.x;
+    const dy = indexTip.y - thumbTip.y;
+    const distance = Math.sqrt(dx*dx + dy*dy);
+
+    if (distance < 0.05) {
+      if (!isPinching && !pinchCooldown) {
+        isPinching = true;
+        pinchCooldown = true;
+        cursor.classList.add('pinch');
+        handlePinch(x, y);
+        setTimeout(() => pinchCooldown = false, 800);
+      }
+    } else {
+      isPinching = false;
+      cursor.classList.remove('pinch');
+    }
+  } else {
+    cursor.classList.add('hidden');
+    mouse.x = -1000; mouse.y = -1000;
+  }
+}
+
+function handlePinch(x, y) {
+  let el = document.elementFromPoint(x, y);
+  if (!el) return;
+  if (el.id === 'start-btn' || el.closest('#start-btn')) startGame();
+  else if (el.id === 'restart-btn' || el.closest('#restart-btn')) startGame();
+  else if (el.id === 'dec-a' || el.closest('.dec.a')) choose('a');
+  else if (el.id === 'dec-b' || el.closest('.dec.b')) choose('b');
+}
+
+/* LÓGICA DO JOGO */
+const $=id=>document.getElementById(id);
+async function startGame(){
+  initAudio(); if(audioCtx&&audioCtx.state==='suspended') audioCtx.resume();
+  if(!cameraActive) await initMediaPipe();
+  
+  metrics={cash:100,moral:100,market:100,risk:30};
+  timeLeft=90; currentIdx=0;
+  scenarioOrder=[...scenarios.keys()].sort(()=>Math.random()-0.5);
+  updateMetrics();
+  $('start-screen').style.display='none';
+  $('end-screen').classList.add('hidden');
+  $('game-app').style.display='flex';
+  nextScenario();
+  clearInterval(timerInterval);
+  timerInterval=setInterval(tick,1000);
+}
+function tick(){ timeLeft--; const t=$('timer'); t.textContent=timeLeft; t.classList.toggle('critical',timeLeft<=15); if(timeLeft<=0) endGame(); }
+
+function applyDecisionTheme() {
+  const theme = colorThemes[Math.floor(Math.random() * colorThemes.length)];
+  const root = document.documentElement;
+  root.style.setProperty('--dec-a-color', theme.a);
+  root.style.setProperty('--dec-a-rgb', theme.a_rgb);
+  root.style.setProperty('--dec-b-color', theme.b);
+  root.style.setProperty('--dec-b-rgb', theme.b_rgb);
+}
+
+function nextScenario(){
+  if(currentIdx>=scenarioOrder.length){endGame();return;}
+  applyDecisionTheme(); // Aplica nova paleta de cores a cada pergunta
+  const sc=scenarios[scenarioOrder[currentIdx]];
+  $('sc-tag').textContent=sc.tag;
+  $('sc-text').textContent=sc.text;
+  $('sc-text').classList.remove('glitch'); void $('sc-text').offsetWidth;
+  $('sc-text').classList.add('glitch');
+  $('dec-a-text').textContent=sc.a.t; $('dec-b-text').textContent=sc.b.t;
+  locked=false;
+}
+function choose(side){
+  if(locked) return; locked=true;
+  const sc=scenarios[scenarioOrder[currentIdx]]; const dec=side==='a'?sc.a:sc.b; const d=dec.d;
+  Object.keys(d).forEach(k=>{ metrics[k]=Math.max(0,Math.min(150,metrics[k]+d[k])); flashMetric(k,d[k]>0); });
+  updateMetrics();
+  const app=$('game-app'); const x=window.innerWidth/2, y=window.innerHeight/2;
+  const isCrisis=Math.abs(d.cash)>=20||Math.abs(d.moral)>=20;
+  if(isCrisis){ playCrisis(); setMood('crisis'); $('flash').className='flash-overlay crisis show'; app.classList.add('shake'); burst(x,y,80); setTimeout(()=>app.classList.remove('shake'),500); }
+  else if(d.cash+d.moral+d.market-d.risk>0){ playSuccess(); setMood('success'); $('flash').className='flash-overlay success show'; burst(x,y,50); }
+  else{ playError(); setMood('error'); $('flash').className='flash-overlay error show'; app.classList.add('shake'); burst(x,y,40); setTimeout(()=>app.classList.remove('shake'),500); }
+  setTimeout(()=>{$('flash').classList.remove('show');setMood('neutral');},500);
+  setTimeout(()=>{currentIdx++;nextScenario();},1400);
+  if(metrics.cash<=0||metrics.moral<=0){setTimeout(endGame,1400);}
+}
+function flashMetric(k,up){ const el=document.querySelector('.metric.'+k); el.classList.remove('flash-up','flash-down'); void el.offsetWidth; el.classList.add(up?'flash-up':'flash-down'); }
+function updateMetrics(){
+  $('m-cash').textContent=Math.round(metrics.cash); $('m-moral').textContent=Math.round(metrics.moral);
+  $('m-market').textContent=Math.round(metrics.market); $('m-risk').textContent=Math.round(metrics.risk);
+  $('f-cash').style.width=metrics.cash+'%'; $('f-moral').style.width=metrics.moral+'%';
+  $('f-market').style.width=metrics.market+'%'; $('f-risk').style.width=metrics.risk+'%';
+}
+function endGame(){
+  clearInterval(timerInterval);
+  const alive=metrics.cash>0&&metrics.moral>0;
+  const score=(metrics.cash+metrics.moral+metrics.market+(100-metrics.risk))/4;
+  const win=alive&&score>55;
+  $('game-app').style.display='none';
+  $('end-screen').classList.remove('hidden');
+  $('end-title-text').setAttribute('data-text',win?'SOBREVIVEU':'FALIU');
+  $('end-title-text').textContent=win?'SOBREVIVEU':'FALIU';
+  if(win){document.documentElement.style.setProperty('--uniara-red','#39ff14');} else{document.documentElement.style.setProperty('--uniara-red','#ED1C24');}
+  playFinal(win);
+  if(win){setMood('success');burst(innerWidth/2,innerHeight/2,120);setTimeout(()=>burst(innerWidth/4,innerHeight/2,60),300);setTimeout(()=>burst(innerWidth*3/4,innerHeight/2,60),500);} else{setMood('error');}
+  const rows=$('report-rows');
+  rows.innerHTML=`<div class="report-row"><span class="k">◼ CAIXA FINAL</span><span class="v" style="color:var(--cash)">${Math.round(metrics.cash)}%</span></div><div class="report-row"><span class="k">◼ MORAL DA EQUIPE</span><span class="v" style="color:var(--moral)">${Math.round(metrics.moral)}%</span></div><div class="report-row"><span class="k">◼ MARKET SHARE</span><span class="v" style="color:var(--market)">${Math.round(metrics.market)}%</span></div><div class="report-row"><span class="k">◼ NÍVEL DE RISCO</span><span class="v" style="color:var(--risk)">${Math.round(metrics.risk)}%</span></div><div class="report-row"><span class="k">◼ DECISÕES TOMADAS</span><span class="v">${currentIdx}</span></div>`;
+  const profile=defineProfile(metrics,win);
+  $('profile').textContent=profile.title; $('verdict').textContent=profile.verdict;
+  
+  // QR Code apontando para o site da UNIARA
+  const data=encodeURIComponent("https://www.uniara.br/graduacao/administracao?utm_source=feira&utm_campaign=crisis&score="+Math.round(score));
+  $('qr-final').innerHTML=`<img src='https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${data}' width='140' height='140' alt='Curso de Administração UNIARA'>`;
+  setTimeout(()=>setMood('neutral'),3000);
+}
+function defineProfile(m,win){
+  if(!win) return {title:"💀 O IMPÉRIO DESABOU",verdict:"Caixa ou moral chegaram a zero. A empresa não resistiu às suas decisões. É exatamente por isso que o curso de Administração da UNIARA existe — para formar gestores que antecipam crises antes que elas cheguem."};
+  if(m.cash>=90&&m.market>=90) return {title:"🏆 VISIONÁRIO DE MERCADO",verdict:"Você equilibrou lucro, pessoas e expansão. Esse é o perfil que o mercado disputa — e que o curso de Administração da UNIARA forma strategicamente ao longo da graduação."};
+  if(m.moral>=90) return {title:"👥 LÍDER DE PESSOAS",verdict:"Protegeu a equipe mesmo com custo. Gestão de pessoas é a competência mais valorizada nas organizações modernas — e um dos pilares da Administração na UNIARA."};
+  if(m.risk<=40) return {title:"🛡 MESTRE DO RISCO",verdict:"Manteve a empresa viva com decisões calculadas. Gestão de risco é o que separa amadores de administradores profissionais. A UNIARA transforma esse instinto em método."};
+  return {title:"⚔ SOBREVIVENTE",verdict:"A empresa resistiu, mas sangrou. Administrar é decidir sob incerteza, com recursos limitados. O curso de Administração da UNIARA dá as ferramentas para fazer isso com excelência."};
+}
+
+ $('start-btn').addEventListener('click',startGame);
+ $('restart-btn').addEventListener('click',startGame);
+ $('dec-a').addEventListener('click',()=>choose('a'));
+ $('dec-b').addEventListener('click',()=>choose('b'));
+addEventListener('dblclick',()=>{if(!document.fullscreenElement) document.documentElement.requestFullscreen();});
+</script>
+</body>
+</html>
