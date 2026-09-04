@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#050507">
+  <title>Meu perfil de gestor | Administração UNIARA</title>
+  <style>
+    :root{
+      --bg:#050507;
+      --panel:#101018;
+      --ink:#f0f0f5;
+      --muted:#9b9baa;
+      --red:#ED1C24;
+      --cyan:#00f0ff;
+      --green:#39ff14;
+      --amber:#ffaa00;
+    }
+    *{box-sizing:border-box;}
+    body{
+      min-height:100vh;
+      margin:0;
+      display:grid;
+      place-items:center;
+      padding:24px 16px;
+      color:var(--ink);
+      background:
+        radial-gradient(circle at 50% -10%,rgba(237,28,36,.20),transparent 36%),
+        linear-gradient(135deg,#050507 0%,#0b0b14 100%);
+      font-family:Arial,Helvetica,sans-serif;
+    }
+    main{width:min(100%,540px);}
+    .brand{
+      margin-bottom:18px;
+      color:var(--muted);
+      font-family:"Courier New",monospace;
+      font-size:.72rem;
+      font-weight:700;
+      letter-spacing:.16em;
+      text-align:center;
+    }
+    .card{
+      overflow:hidden;
+      border:1px solid rgba(0,240,255,.26);
+      border-radius:18px;
+      background:rgba(16,16,24,.94);
+      box-shadow:0 20px 60px rgba(0,0,0,.45),0 0 44px rgba(0,240,255,.07);
+    }
+    .topline{height:4px;background:linear-gradient(90deg,var(--red),var(--cyan),var(--green));}
+    .content{padding:30px 24px 26px;text-align:center;}
+    .eyebrow{
+      margin:0 0 12px;
+      color:var(--cyan);
+      font-family:"Courier New",monospace;
+      font-size:.72rem;
+      font-weight:700;
+      letter-spacing:.15em;
+    }
+    h1{margin:0;font-size:clamp(1.7rem,7vw,2.4rem);line-height:1.05;}
+    .score{margin:15px 0 0;color:var(--amber);font-family:"Courier New",monospace;font-size:.86rem;letter-spacing:.08em;}
+    .description{margin:22px auto 20px;max-width:430px;color:#ddddE5;font-size:1.03rem;line-height:1.55;}
+    .skills{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:0 0 25px;}
+    .skill{padding:8px 10px;border:1px solid rgba(255,255,255,.13);border-radius:999px;background:rgba(255,255,255,.04);color:var(--muted);font-size:.78rem;}
+    .next{margin:0 auto 20px;max-width:430px;color:var(--muted);font-size:.91rem;line-height:1.5;}
+    .button{
+      display:block;
+      width:100%;
+      padding:16px 18px;
+      border:2px solid var(--red);
+      border-radius:10px;
+      color:#fff;
+      background:var(--red);
+      box-shadow:0 0 28px rgba(237,28,36,.3);
+      font-size:1rem;
+      font-weight:800;
+      letter-spacing:.03em;
+      line-height:1.25;
+      text-decoration:none;
+    }
+    .button:focus-visible{outline:3px solid var(--cyan);outline-offset:4px;}
+    .notice{margin:17px 0 0;color:#777789;font-size:.72rem;line-height:1.45;}
+    footer{margin:16px 0 0;color:#6b6b80;font-size:.72rem;text-align:center;}
+  </style>
+</head>
+<body>
+  <main>
+    <p class="brand">CRISIS · ADMINISTRAÇÃO UNIARA</p>
+    <section class="card" aria-labelledby="profile-title">
+      <div class="topline"></div>
+      <div class="content">
+        <p class="eyebrow">SEU PERFIL DE GESTOR</p>
+        <h1 id="profile-title">Carregando resultado...</h1>
+        <p class="score" id="score"></p>
+        <p class="description" id="description"></p>
+        <div class="skills" id="skills" aria-label="Competências observadas"></div>
+        <p class="next">Quer transformar esse potencial em formação e possibilidades de carreira? Conheça o curso de Administração da UNIARA.</p>
+        <a class="button" id="course-link" href="https://www.uniara.com.br/cursos/presencial/graduacao/administracao/">CONHECER ADMINISTRAÇÃO NA UNIARA</a>
+        <p class="notice">Este perfil é uma experiência interativa de feira e não representa uma avaliação profissional.</p>
+      </div>
+    </section>
+    <footer>Obrigado por participar do desafio.</footer>
+  </main>
+
+  <script>
+    const params=new URLSearchParams(window.location.search);
+    const profileKey=params.get('profile') || 'inovacao';
+    const scoreValue=Number(params.get('score'));
+    const rawSkills=(params.get('skills') || '').split(',').map(item=>item.trim()).filter(Boolean);
+    const courseLink=document.getElementById('course-link');
+    const courseUrl=new URL(courseLink.href);
+    courseUrl.searchParams.set('utm_source',params.get('utm_source') || 'feira');
+    courseUrl.searchParams.set('utm_campaign',params.get('utm_campaign') || 'crisis');
+    courseUrl.searchParams.set('utm_content','perfil-qr');
+    courseLink.href=courseUrl.toString();
+
+    const profiles={
+      lideranca:{
+        title:'LÍDER DE PESSOAS',
+        description:'Suas escolhas colocaram confiança, cultura e equipe no centro da decisão. Liderar é dar direção sem perder as pessoas de vista.'
+      },
+      estrategia:{
+        title:'ESTRATEGISTA DE CRESCIMENTO',
+        description:'Você buscou oportunidades, diferenciação e presença de mercado. Estratégia é decidir onde competir e como gerar valor.'
+      },
+      'gestao-financeira':{
+        title:'GUARDIÃO FINANCEIRO',
+        description:'Você protegeu recursos e avaliou riscos com atenção. Boa gestão financeira torna escolhas ambiciosas mais sustentáveis.'
+      },
+      inovacao:{
+        title:'INOVADOR DE NEGÓCIOS',
+        description:'Você se adaptou aos cenários e procurou novas soluções. Inovar é transformar mudanças em caminhos de crescimento.'
+      },
+      'missao-interrompida':{
+        title:'MISSÃO INTERROMPIDA',
+        description:'O desafio não teve decisões suficientes para revelar um perfil. Uma nova rodada pode mostrar quais competências de gestão se destacam em você.'
+      }
+    };
+
+    const profile=profiles[profileKey] || profiles.inovacao;
+    document.title=`${profile.title} | Administração UNIARA`;
+    document.getElementById('profile-title').textContent=profile.title;
+    document.getElementById('description').textContent=profile.description;
+    if(Number.isFinite(scoreValue)){
+      document.getElementById('score').textContent=`ÍNDICE DO DESAFIO: ${Math.max(0,Math.min(100,Math.round(scoreValue)))} / 100`;
+    }
+
+    const uniqueSkills=[...new Set(rawSkills)].slice(0,3);
+    const skillsContainer=document.getElementById('skills');
+    if(uniqueSkills.length){
+      uniqueSkills.forEach(skill=>{
+        const tag=document.createElement('span');
+        tag.className='skill';
+        tag.textContent=skill;
+        skillsContainer.append(tag);
+      });
+    }else{
+      skillsContainer.hidden=true;
+    }
+  </script>
+</body>
+</html>

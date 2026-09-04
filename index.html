@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CRISIS — Sala de Diretoria | Administração UNIARA</title>
 <!-- MediaPipe Hands -->
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
@@ -15,7 +15,7 @@
   --uniara-red:#ED1C24; --neon-cyan:#00f0ff;
   --neon-green:#39ff14; --neon-amber:#ffaa00; --neon-red:#ff2222; --neon-magenta:#ff006e;
   --cash:#39ff14; --moral:#00f0ff; --market:#ffaa00; --risk:#ED1C24;
-  
+
   /* Variáveis dinâmicas das caixas de decisão */
   --dec-a-color:#ED1C24; --dec-a-rgb:237,28,36;
   --dec-b-color:#00f0ff; --dec-b-rgb:0,240,255;
@@ -23,7 +23,7 @@
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Courier New',monospace;
   user-select:none;-webkit-tap-highlight-color:transparent;}
 html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--ink);}
-body{cursor:none;}
+body{cursor:default;}
 
 #bg-canvas{position:fixed;inset:0;z-index:0;}
 #webcam{position:fixed;bottom:15px;right:15px;width:160px;height:120px;z-index:5;opacity:0.4; transform: scaleX(-1); border: 1px solid var(--uniara-red); border-radius: 4px;}
@@ -114,11 +114,61 @@ body{cursor:none;}
 .flash-overlay.show{animation:flash .5s;}
 @keyframes flash{0%{opacity:0;}20%{opacity:1;}100%{opacity:0;}}
 
+/* Alertas narrativos e leitura imediata do estado da empresa */
+.alert-stack{position:fixed;top:86px;right:24px;z-index:14;display:grid;gap:10px;width:min(390px,calc(100vw - 32px));pointer-events:none;}
+.alert-card{position:relative;overflow:hidden;padding:13px 15px 14px;border:1px solid rgba(255,170,0,.65);border-left:4px solid var(--neon-amber);border-radius:4px;background:rgba(10,10,18,.94);box-shadow:0 12px 32px rgba(0,0,0,.45),0 0 24px rgba(255,170,0,.12);backdrop-filter:blur(10px);animation:alertIn .35s cubic-bezier(.2,.8,.2,1) both;}
+.alert-card::after{content:'';position:absolute;left:0;right:0;bottom:0;height:2px;background:var(--neon-amber);transform-origin:left;animation:alertTimer 2.8s linear both;}
+.alert-card.danger{border-color:rgba(255,34,34,.72);border-left-color:var(--neon-red);box-shadow:0 12px 32px rgba(0,0,0,.45),0 0 28px rgba(237,28,36,.18);}
+.alert-card.danger::after{background:var(--neon-red);}
+.alert-card.success{border-color:rgba(57,255,20,.72);border-left-color:var(--neon-green);box-shadow:0 12px 32px rgba(0,0,0,.45),0 0 28px rgba(57,255,20,.15);}
+.alert-card.success::after{background:var(--neon-green);}
+.alert-card .alert-code{display:block;margin-bottom:5px;color:var(--neon-amber);font-size:.62rem;font-weight:700;letter-spacing:.18em;}
+.alert-card.danger .alert-code{color:var(--neon-red);}
+.alert-card.success .alert-code{color:var(--neon-green);}
+.alert-card strong{display:block;color:#fff;font-size:.93rem;letter-spacing:.04em;line-height:1.2;}
+.alert-card p{margin:6px 0 0;color:#d9d9e4;font-size:.78rem;line-height:1.4;}
+.alert-card .alert-impact{margin-top:8px;color:var(--neon-amber);font-size:.68rem;font-weight:700;letter-spacing:.04em;line-height:1.35;}
+.alert-card.danger .alert-impact{color:#ff7a7a;}
+.alert-card.success .alert-impact{color:#9bff87;}
+.alert-card.hide{animation:alertOut .25s ease-in both;}
+@keyframes alertIn{from{opacity:0;transform:translateX(110%);}to{opacity:1;transform:translateX(0);}}
+@keyframes alertOut{from{opacity:1;transform:translateX(0);}to{opacity:0;transform:translateX(110%);}}
+@keyframes alertTimer{from{transform:scaleX(1);}to{transform:scaleX(0);}}
+
+.crisis-state{display:flex;align-items:center;gap:10px;min-height:34px;margin-bottom:14px;padding:8px 12px;border:1px solid rgba(255,170,0,.28);border-radius:3px;background:rgba(255,170,0,.06);color:var(--neon-amber);font-size:.68rem;letter-spacing:.13em;transition:all .35s;}
+.crisis-state strong{font-size:.72rem;color:#fff;letter-spacing:.12em;}
+.crisis-state .state-detail{margin-left:auto;color:var(--muted);font-size:.62rem;letter-spacing:.04em;text-align:right;}
+.crisis-state.danger{border-color:rgba(255,34,34,.62);background:rgba(237,28,36,.11);box-shadow:0 0 24px rgba(237,28,36,.1);}
+.crisis-state.danger > span:first-child{color:var(--neon-red);}
+.crisis-state.success{border-color:rgba(57,255,20,.55);background:rgba(57,255,20,.08);box-shadow:0 0 24px rgba(57,255,20,.1);}
+.crisis-state.success > span:first-child{color:var(--neon-green);}
+.crisis-state.pulse{animation:statePulse .7s ease;}
+@keyframes statePulse{0%,100%{transform:scale(1);}35%{transform:scale(1.01);box-shadow:0 0 28px currentColor;}}
+
+.outcome-banner{width:min(100%,560px);margin:-4px auto 18px;padding:15px 18px;border:1px solid rgba(255,170,0,.55);border-radius:4px;background:rgba(255,170,0,.08);text-align:left;}
+.outcome-banner.success{border-color:rgba(57,255,20,.7);background:rgba(57,255,20,.08);}
+.outcome-banner.danger{border-color:rgba(255,34,34,.7);background:rgba(237,28,36,.09);}
+.outcome-banner .outcome-kicker{display:block;margin-bottom:5px;color:var(--neon-amber);font-size:.62rem;font-weight:700;letter-spacing:.18em;}
+.outcome-banner.success .outcome-kicker{color:var(--neon-green);}
+.outcome-banner.danger .outcome-kicker{color:var(--neon-red);}
+.outcome-banner strong{display:block;color:#fff;font-size:1.05rem;line-height:1.25;letter-spacing:.04em;}
+.outcome-banner p{margin:6px 0 0;color:#d8d8e2;font-size:.82rem;line-height:1.42;}
+.decision-summary{width:min(100%,560px);margin:0 auto 18px;padding:14px 16px;border:1px solid rgba(255,255,255,.12);border-radius:4px;background:rgba(10,10,18,.65);text-align:left;}
+.decision-summary h3{margin-bottom:10px;color:var(--muted);font-size:.66rem;letter-spacing:.18em;}
+.decision-item{display:grid;grid-template-columns:22px 1fr;gap:8px;padding:8px 0;border-top:1px solid rgba(255,255,255,.08);}
+.decision-item:first-of-type{border-top:0;}
+.decision-item .mark{font-size:1rem;font-weight:700;color:var(--neon-amber);}
+.decision-item.success .mark{color:var(--neon-green);}
+.decision-item.danger .mark{color:var(--neon-red);}
+.decision-item strong{display:block;color:#f0f0f5;font-size:.72rem;line-height:1.25;}
+.decision-item span{display:block;margin-top:3px;color:var(--muted);font-size:.66rem;line-height:1.3;}
+
 .screen{position:fixed;inset:0;z-index:10;display:flex;flex-direction:column;
   justify-content:center;align-items:center;text-align:center;padding:40px;
   background:rgba(5,5,7,.92);backdrop-filter:blur(10px);}
 .screen.hidden{display:none;}
-.screen h1{font-size:4rem;font-weight:900;letter-spacing:-.02em;line-height:1;margin-bottom:8px;}
+#end-screen{justify-content:flex-start;overflow-y:auto;padding-top:28px;padding-bottom:28px;}
+.screen h1{font-size:clamp(2.7rem,7vw,4rem);font-weight:900;letter-spacing:-.02em;line-height:1;margin-bottom:8px;}
 .screen h1 .glitch-title{position:relative;display:inline-block;}
 .screen h1 .glitch-title::before,.screen h1 .glitch-title::after{
   content:attr(data-text);position:absolute;top:0;left:0;width:100%;}
@@ -140,11 +190,47 @@ body{cursor:none;}
 .report-row .k{color:var(--muted);} .report-row .v{font-weight:700;}
 .profile{font-size:1.3rem;font-weight:700;color:var(--neon-amber);margin:16px 0;
   text-shadow:0 0 20px rgba(255,170,0,.3);}
-.verdict{font-size:.95rem;color:var(--ink);line-height:1.5;max-width:520px;margin-bottom:24px;opacity:.85;}
-.qr-final{margin:14px 0 24px;background:#fff;padding:10px;border-radius:4px;}
-.audio-note{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);
-  font-size:.65rem;color:var(--muted);letter-spacing:.15em;z-index:5;opacity:.5;}
-</style>
+	.verdict{font-size:.95rem;color:var(--ink);line-height:1.5;max-width:520px;margin-bottom:12px;opacity:.85;}
+	.cta-copy{font-size:.78rem;color:var(--neon-cyan);letter-spacing:.06em;max-width:420px;line-height:1.45;margin:10px 0 4px;}
+	.reset-note{font-size:.65rem;color:var(--muted);letter-spacing:.08em;margin-top:4px;}
+	.qr-final{margin:14px 0 12px;background:#fff;padding:10px;border-radius:4px;}
+	.audio-note{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);
+	  font-size:.65rem;color:var(--muted);letter-spacing:.15em;z-index:5;opacity:.5;}
+
+	@media (max-width: 640px){
+	  .app{padding:14px;}
+	  .hud{grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:14px;}
+	  .metric{padding:8px 10px;}
+	  .metric .val{font-size:1.2rem;}
+	  .scenario{padding:22px 16px;}
+	  .scenario-tag{left:16px;font-size:.58rem;}
+	  .scenario-text{font-size:1.2rem;}
+	  .hint{font-size:.7rem;}
+	  .decisions{grid-template-columns:1fr;gap:10px;margin-top:16px;}
+	  .dec{padding:14px;}
+	  .dec .dec-text{font-size:.9rem;}
+	  .screen{padding:24px 16px;}
+	  .screen h1{font-size:2.7rem;}
+	  .screen .lead{font-size:1rem;}
+	  .btn-start{padding:15px 24px;font-size:1rem;}
+	  .report{width:100%;padding:18px;}
+	  .report-row{font-size:.82rem;}
+	  #webcam{width:100px;height:75px;bottom:10px;right:10px;}
+	  #uniara-watermark{height:26px;top:12px;right:12px;}
+		  .audio-note{display:none;}
+		  .alert-stack{top:74px;right:16px;width:calc(100vw - 32px);}
+		  .alert-card{padding:11px 12px 12px;}
+		  .alert-card strong{font-size:.82rem;}
+		  .alert-card p{font-size:.7rem;}
+		  .crisis-state{align-items:flex-start;flex-wrap:wrap;gap:5px 8px;font-size:.58rem;}
+		  .crisis-state strong{font-size:.62rem;}
+		  .crisis-state .state-detail{width:100%;margin-left:0;text-align:left;font-size:.55rem;}
+		  .outcome-banner{padding:12px 13px;}
+		  .outcome-banner strong{font-size:.88rem;}
+		  .outcome-banner p{font-size:.72rem;}
+		  .decision-summary{padding:11px 12px;}
+		}
+	</style>
 </head>
 <body>
 <canvas id="bg-canvas"></canvas>
@@ -154,15 +240,16 @@ body{cursor:none;}
 <div class="vignette"></div>
 <div class="scanlines"></div>
 <div class="flash-overlay" id="flash"></div>
+<div class="alert-stack" id="alert-stack" aria-live="polite" aria-atomic="true"></div>
 
-<!-- Tela inicial -->
+	<!-- Tela inicial -->
 <div class="screen" id="start-screen">
   <img src="logo-uniara.png" alt="UNIARA" id="uniara-logo" onerror="this.style.display='none'">
   <h1><span class="glitch-title" data-text="CRISIS">CRISIS</span></h1>
-  <p class="lead">A empresa está sangrando. Caixa despencando. Moral no fundo do poço. Você tem <b style="color:var(--uniara-red)">90 segundos</b> para provar que nasceu para administrar. Conheça o curso de Administração da UNIARA na prática.</p>
-  <button class="btn-start" id="start-btn">▶ ASSUMIR O COMANDO</button>
-  <p style="font-size:.7rem;color:var(--muted);margin-top:24px;letter-spacing:.1em;">USE A MÃO PARA MOVER O CURSOR · JUNTE INDICADOR E POLEGAR PARA CLICAR 🖐️</p>
-  <p style="font-size:.7rem;color:var(--muted);margin-top:8px;letter-spacing:.1em;">USE FONES DE OUVIDO PARA EXPERIÊNCIA COMPLETA 🎧</p>
+  <p class="lead">Você consegue salvar uma empresa em <b style="color:var(--uniara-red)">45 segundos</b>? Enfrente três decisões e descubra qual área da Administração combina com o seu perfil.</p>
+  <button class="btn-start" id="start-btn">▶ ACEITAR O DESAFIO</button>
+  <p style="font-size:.7rem;color:var(--muted);margin-top:24px;letter-spacing:.1em;">TOQUE PARA ESCOLHER · OU USE A MÃO: JUNTE INDICADOR E POLEGAR</p>
+  <p style="font-size:.7rem;color:var(--muted);margin-top:8px;letter-spacing:.1em;">3 DECISÕES · 45 SEGUNDOS · UM PERFIL DE GESTOR</p>
 </div>
 
 <!-- App do jogo -->
@@ -170,12 +257,17 @@ body{cursor:none;}
   <div class="hud">
     <div class="metric cash"><div class="lbl">◼ CAIXA</div><div class="val" id="m-cash">100</div><div class="bar"><div class="fill" id="f-cash"></div></div></div>
     <div class="metric moral"><div class="lbl">◼ MORAL</div><div class="val" id="m-moral">100</div><div class="bar"><div class="fill" id="f-moral"></div></div></div>
-    <div class="metric market"><div class="lbl">◼ MARKET</div><div class="val" id="m-market">100</div><div class="bar"><div class="fill" id="f-market"></div></div></div>
+    <div class="metric market"><div class="lbl">◼ MERCADO</div><div class="val" id="m-market">100</div><div class="bar"><div class="fill" id="f-market"></div></div></div>
     <div class="metric risk"><div class="lbl">◼ RISCO</div><div class="val" id="m-risk">30</div><div class="bar"><div class="fill" id="f-risk" style="width:30%"></div></div></div>
   </div>
   <div class="timer-wrap">
     <span class="timer-label">⏱ TEMPO RESTANTE</span>
     <span class="timer-val" id="timer">90</span>
+  </div>
+  <div class="crisis-state" id="crisis-state">
+    <span>◼ STATUS</span>
+    <strong id="crisis-state-text">OPERAÇÃO INSTÁVEL</strong>
+    <span class="state-detail" id="crisis-state-detail">Cada decisão altera o destino da empresa.</span>
   </div>
   <div class="scenario" id="scenario">
     <span class="scenario-tag" id="sc-tag">CENÁRIO 01</span>
@@ -191,15 +283,25 @@ body{cursor:none;}
 <!-- Tela final -->
 <div class="screen hidden" id="end-screen">
   <img src="logo-uniara.png" alt="UNIARA" id="uniara-logo-end" onerror="this.style.display='none'">
-  <h1><span class="glitch-title" id="end-title-text" data-text="RELATÓRIO">RELATÓRIO</span></h1>
+  <h1><span class="glitch-title" id="end-title-text" data-text="SEU PERFIL">SEU PERFIL</span></h1>
+  <div class="outcome-banner" id="outcome-banner">
+    <span class="outcome-kicker" id="outcome-kicker">BALANÇO DE COMANDO</span>
+    <strong id="outcome-headline">A operação foi encerrada.</strong>
+    <p id="outcome-detail"></p>
+  </div>
   <div class="report">
-    <h2>◼ BALANÇO FINAL DO CEO</h2>
+    <h2>◼ BALANÇO DO DESAFIO</h2>
     <div class="report-rows" id="report-rows"></div>
   </div>
   <div class="profile" id="profile"></div>
   <p class="verdict" id="verdict"></p>
+  <div class="decision-summary" id="decision-summary">
+    <h3>◼ SUAS DECISÕES DE COMANDO</h3>
+  </div>
+  <p class="cta-copy" id="cta-copy">ESCANEIE PARA LEVAR SEU PERFIL E CONHECER ADMINISTRAÇÃO NA UNIARA</p>
   <div class="qr-final" id="qr-final"></div>
-  <button class="btn-start" id="restart-btn">↻ NOVA RODADA</button>
+  <button class="btn-start" id="restart-btn">↻ JOGAR NOVAMENTE</button>
+  <p class="reset-note" id="reset-note"></p>
 </div>
 
 <div class="audio-note" id="audio-note">EXPERIÊNCIA SENSORIAL INTERATIVA · ADMINISTRAÇÃO UNIARA</div>
@@ -208,7 +310,7 @@ body{cursor:none;}
 /* CENÁRIOS */
 const scenarios=[
   {tag:"CENÁRIO 01 — GUERRA DE PREÇOS", text:"Um concorrente lançou um produto idêntico 30% mais barato. Suas vendas despencaram esta semana.", a:{t:"Cortar preços e entrar em guerra.",d:{cash:-18,moral:-5,market:-8,risk:+15}}, b:{t:"Investir em diferenciação e branding.",d:{cash:-12,moral:+8,market:+12,risk:+5}}, skill:"Visão estratégica"},
-  {tag:"CENÁRIO 02 — ÊNDOXO NA EQUIPE", text:"Seu melhor gerente está sendo assediado por um cliente importante. A equipe sabe. Ninguém fala.", a:{t:"Ignorar — o cliente paga o salário.",d:{cash:+5,moral:-25,market:0,risk:+20}}, b:{t:"Confrontar o cliente e proteger a equipe.",d:{cash:-15,moral:+20,market:-5,risk:+5}}, skill:"Liderança e ética"},
+  {tag:"CENÁRIO 02 — ÊXODO NA EQUIPE", text:"Seu melhor gerente está sendo assediado por um cliente importante. A equipe sabe. Ninguém fala.", a:{t:"Ignorar — o cliente paga o salário.",d:{cash:+5,moral:-25,market:0,risk:+20}}, b:{t:"Confrontar o cliente e proteger a equipe.",d:{cash:-15,moral:+20,market:-5,risk:+5}}, skill:"Liderança e ética"},
   {tag:"CENÁRIO 03 — CASH FLOW CRÍTICO", text:"O caixa cobre apenas 3 semanas. Um grande cliente atrasa pagamento. Fornecedores batem na porta.", a:{t:"Pegar empréstimo bancário a juros altos.",d:{cash:+25,moral:+5,market:0,risk:+25}}, b:{t:"Renegociar prazos com fornecedores.",d:{cash:-5,moral:-8,market:-3,risk:-5}}, skill:"Gestão financeira"},
   {tag:"CENÁRIO 04 — CRISE DE IMAGEM", text:"Um post viralizou acusando sua empresa de mau atendimento. Imprensa ligou. Ações em queda.", a:{t:"Nota pública imediata assumindo o erro.",d:{cash:-8,moral:+12,market:+8,risk:-10}}, b:{t:"Silêncio estratégico — deixar a poeira baixar.",d:{cash:0,moral:-10,market:-18,risk:+15}}, skill:"Comunicação e marketing"},
   {tag:"CENÁRIO 05 — TECNOLOGIA DISRUPTIVA", text:"Uma startup lançou IA que substitui metade do seu serviço. Seu modelo pode ficar obsoleto em 6 meses.", a:{t:"Adquirir a startup antes dos concorrentes.",d:{cash:-30,moral:+5,market:+22,risk:+20}}, b:{t:"Investir em P&D interna para competir.",d:{cash:-15,moral:+8,market:+5,risk:+5}}, skill:"Inovação e transformação digital"},
@@ -226,8 +328,17 @@ const colorThemes = [
   { a:'#ff006e', a_rgb:'255,0,110',  b:'#39ff14', b_rgb:'57,255,20' }  // Magenta & Verde
 ];
 
-let metrics={cash:100,moral:100,market:100,risk:30};
-let timeLeft=90,timerInterval,locked=false,currentIdx=0,scenarioOrder=[];
+const ROUND_SECONDS=45;
+const ROUND_SCENARIOS=3;
+const MIN_DECISIONS_FOR_PROFILE=2;
+const BASE_METRICS={cash:75,moral:75,market:70,risk:25};
+const COURSE_PAGE_URL=new URL('https://www.uniara.com.br/cursos/presencial/graduacao/administracao/');
+const PROFILE_LANDING_PAGE=window.location.protocol==='file:'
+  ? COURSE_PAGE_URL
+  : new URL('perfil.html',window.location.href);
+let metrics={...BASE_METRICS};
+let timeLeft=ROUND_SECONDS,timerInterval,locked=false,currentIdx=0,scenarioOrder=[];
+let gameEnded=false,decisionHistory=[],idleTimer,alertTimers=[];
 
 /* ÁUDIO */
 let audioCtx,masterGain,droneOscs=[];
@@ -265,7 +376,7 @@ const canvas=document.getElementById('bg-canvas'); const ctx=canvas.getContext('
 let W,H,particles=[],mouse={x:-1000,y:-1000};
 function resize(){W=canvas.width=innerWidth;H=canvas.height=innerHeight;}
 resize(); addEventListener('resize',resize);
-function initParticles(){ particles=[]; const n=Math.min(160,Math.floor(W*H/9000)); for(let i=0;i<n;i++){ particles.push({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-0.5)*0.4,vy:(Math.random()-0.5)*0.4,r:Math.random()*1.8+0.5,baseR:Math.random()*1.8+0.5}); } }
+function initParticles(){ particles=[];   const n=Math.max(40,Math.min(160,Math.floor(W*H/9000))); for(let i=0;i<n;i++){ particles.push({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-0.5)*0.4,vy:(Math.random()-0.5)*0.4,r:Math.random()*1.8+0.5,baseR:Math.random()*1.8+0.5}); } }
 initParticles();
 let particleColor={r:237,g:28,b:36};
 function setMood(mood){ if(mood==='success') particleColor={r:57,g:255,b:20}; else if(mood==='error') particleColor={r:237,g:28,b:36}; else if(mood==='crisis') particleColor={r:255,g:170,b:0}; else particleColor={r:237,g:28,b:36}; }
@@ -278,7 +389,7 @@ function animate(){
     if(p.x<0||p.x>W) p.vx*=-1; if(p.y<0||p.y>H) p.vy*=-1;
     p.x=Math.max(0,Math.min(W,p.x)); p.y=Math.max(0,Math.min(H,p.y));
     const dx=mouse.x-p.x, dy=mouse.y-p.y, d=Math.sqrt(dx*dx+dy*dy);
-    if(d<150){p.vx+=dx/d*0.05; p.vy+=dy/d*0.05;}
+    if(d>0 && d<150){p.vx+=dx/d*0.05; p.vy+=dy/d*0.05;}
     const sp=Math.sqrt(p.vx*p.vx+p.vy*p.vy); if(sp>3){p.vx=p.vx/sp*3; p.vy=p.vy/sp*3;}
     const r=p.burst?p.r*p.life:p.r;
     ctx.beginPath(); ctx.arc(p.x,p.y,Math.max(0.1,r),0,Math.PI*2);
@@ -292,10 +403,13 @@ animate();
 /* MEDIAPIPE E CÂMERA */
 const videoElement = document.getElementById('webcam');
 const cursor = document.getElementById('cursor');
-let hands, cameraActive = false;
+let hands, cameraActive = false, cameraAttempted = false;
 let isPinching = false, pinchCooldown = false;
 
 async function initMediaPipe() {
+  if (cameraAttempted) return;
+  cameraAttempted = true;
+
   if (typeof Hands === 'undefined') {
     console.error("MediaPipe não carregou.");
     document.body.style.cursor = 'crosshair';
@@ -323,16 +437,8 @@ async function initMediaPipe() {
     sendFrame();
 
   } catch (e) {
-    console.error("Erro ao acessar a câmera:", e);
-    document.body.style.cursor = 'crosshair';
-    window.addEventListener('click', e => {
-      cursor.style.left = `${e.clientX}px`;
-      cursor.style.top = `${e.clientY}px`;
-      cursor.classList.remove('hidden');
-      cursor.classList.add('pinch');
-      setTimeout(() => cursor.classList.remove('pinch'), 200);
-      handlePinch(e.clientX, e.clientY);
-    });
+    console.warn("Câmera indisponível; os botões continuarão funcionando com mouse ou toque.", e);
+    document.body.style.cursor = 'default';
   }
 }
 
@@ -340,13 +446,13 @@ function onHandResults(results) {
   if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
     const landmarks = results.multiHandLandmarks[0];
     const indexTip = landmarks[8];
-    
+
     const x = (1 - indexTip.x) * W;
     const y = indexTip.y * H;
-    
+
     mouse.x = x;
     mouse.y = y;
-    
+
     cursor.style.left = `${x}px`;
     cursor.style.top = `${y}px`;
     cursor.classList.remove('hidden');
@@ -375,7 +481,7 @@ function onHandResults(results) {
 }
 
 function handlePinch(x, y) {
-  let el = document.elementFromPoint(x, y);
+  const el = document.elementFromPoint(x, y);
   if (!el) return;
   if (el.id === 'start-btn' || el.closest('#start-btn')) startGame();
   else if (el.id === 'restart-btn' || el.closest('#restart-btn')) startGame();
@@ -383,24 +489,156 @@ function handlePinch(x, y) {
   else if (el.id === 'dec-b' || el.closest('.dec.b')) choose('b');
 }
 
+function clearIdleTimer(){
+  clearTimeout(idleTimer);
+  idleTimer=undefined;
+}
+
+function returnToAttractMode(){
+  clearInterval(timerInterval);
+  clearIdleTimer();
+  gameEnded=true;
+  locked=true;
+  currentIdx=0;
+  timeLeft=ROUND_SECONDS;
+  $('timer').textContent=ROUND_SECONDS;
+  $('timer').classList.remove('critical');
+  $('game-app').style.display='none';
+  $('end-screen').classList.add('hidden');
+  $('start-screen').style.display='flex';
+  $('qr-final').replaceChildren();
+  clearAlerts();
+  $('crisis-state').className='crisis-state';
+  $('crisis-state-text').textContent='OPERAÇÃO INSTÁVEL';
+  $('crisis-state-detail').textContent='Cada decisão altera o destino da empresa.';
+  document.documentElement.style.setProperty('--uniara-red','#ED1C24');
+  setMood('neutral');
+}
+
+function armIdleTimer(delay=30000){
+  clearIdleTimer();
+  idleTimer=setTimeout(returnToAttractMode,delay);
+}
+
 /* LÓGICA DO JOGO */
 const $=id=>document.getElementById(id);
+const metricNames={cash:'CAIXA',moral:'MORAL',market:'MERCADO',risk:'RISCO'};
+
+function impactSummary(d){
+  return Object.entries(d).filter(([,value])=>value!==0).map(([key,value])=>`${metricNames[key]} ${value>0?'+':''}${value}`).join(' · ');
+}
+
+function classifyDecision(d){
+  const net=d.cash+d.moral+d.market-d.risk;
+  const highImpact=Math.abs(d.cash)>=20||Math.abs(d.moral)>=20||d.risk>=20;
+  if(net>=10&&!highImpact) return {tone:'success',code:'DECISÃO FAVORÁVEL',title:'A empresa ganhou fôlego.',message:'Sua escolha abriu uma rota de recuperação. O próximo movimento precisa sustentar esse ganho.'};
+  if(net>=0) return {tone:'warning',code:'DECISÃO DE ALTO IMPACTO',title:'A saída existe, mas tem um preço.',message:'Você evitou o pior cenário por enquanto. A diretoria ainda está operando no limite.'};
+  return {tone:'danger',code:'ALERTA: DECISÃO AGRAVOU A CRISE',title:'A pressão sobre a empresa aumentou.',message:'A escolha resolveu uma frente, mas abriu um rombo em outra. Os indicadores vão cobrar essa decisão.'};
+}
+
+function getCompanyState(){
+  if(metrics.cash<=32||metrics.moral<=32||metrics.market<=32||metrics.risk>=76) return {tone:'danger',label:'EMPRESA EM APUROS',detail:'Um novo choque pode interromper a operação.'};
+  if(metrics.cash>=82&&metrics.moral>=82&&metrics.market>=82&&metrics.risk<=30) return {tone:'success',label:'RECUPERAÇÃO CONFIRMADA',detail:'A operação voltou a respirar. Continue protegendo o equilíbrio.'};
+  return {tone:'warning',label:'OPERAÇÃO INSTÁVEL',detail:'Cada decisão altera o destino da empresa.'};
+}
+
+function updateCompanyState(pulse=false){
+  const state=getCompanyState();
+  const panel=$('crisis-state');
+  panel.className=`crisis-state ${state.tone}${pulse?' pulse':''}`;
+  $('crisis-state-text').textContent=state.label;
+  $('crisis-state-detail').textContent=state.detail;
+  return state;
+}
+
+function showAlert({tone='warning',code='COMUNICADO DA DIRETORIA',title='',message='',impact=''},duration=2800){
+  const stack=$('alert-stack');
+  const card=document.createElement('article');
+  card.className=`alert-card ${tone}`;
+  const codeEl=document.createElement('span'); codeEl.className='alert-code'; codeEl.textContent=code;
+  const titleEl=document.createElement('strong'); titleEl.textContent=title;
+  const messageEl=document.createElement('p'); messageEl.textContent=message;
+  const impactEl=document.createElement('div'); impactEl.className='alert-impact'; impactEl.textContent=impact;
+  card.append(codeEl,titleEl,messageEl);
+  if(impact) card.append(impactEl);
+  stack.prepend(card);
+  const remove=()=>{card.classList.add('hide');setTimeout(()=>card.remove(),260);};
+  const timer=setTimeout(remove,duration);
+  alertTimers.push(timer);
+  while(stack.children.length>3){stack.lastElementChild.remove();}
+}
+
+function clearAlerts(){
+  alertTimers.forEach(clearTimeout); alertTimers=[]; $('alert-stack').replaceChildren();
+}
+
+function finalOutcome(completed,alive,score){
+  if(!completed) return {tone:'danger',kicker:'TEMPO ESGOTADO',title:'Você não conseguiu assumir o comando a tempo.',detail:'A empresa ficou sem decisões suficientes para reagir. Em uma crise real, a omissão também produz um resultado.'};
+  if(!alive) return {tone:'danger',kicker:'COLAPSO OPERACIONAL',title:'A empresa não resistiu às decisões.',detail:'Caixa ou moral chegaram ao limite. O mercado não espera: quando um indicador quebra, todos os outros sentem.'};
+  if(score>=68&&metrics.cash>=45&&metrics.moral>=45&&metrics.market>=45&&metrics.risk<=65) return {tone:'success',kicker:'COMUNICADO EXTRAORDINÁRIO',title:'VOCÊ SALVOU A EMPRESA.',detail:'Suas decisões preservaram a operação e devolveram futuro ao negócio. A crise não desapareceu — mas agora a empresa tem fôlego para crescer.'};
+  if(score>=52) return {tone:'warning',kicker:'SOBREVIVÊNCIA POR UM FIO',title:'A empresa continua de pé — por enquanto.',detail:'Você ganhou tempo, mas deixou pontos de pressão abertos. O próximo ciclo vai exigir método, leitura de cenário e coragem para decidir.'};
+  return {tone:'danger',kicker:'ALERTA DE CONTINUIDADE',title:'A empresa saiu viva, mas entrou em zona de perigo.',detail:'O resultado não foi um colapso imediato. Ainda assim, caixa, pessoas ou mercado ficaram frágeis demais para suportar outra crise.'};
+}
+
+function renderDecisionSummary(){
+  const container=$('decision-summary');
+  container.innerHTML='<h3>◼ SUAS DECISÕES DE COMANDO</h3>';
+  decisionHistory.forEach((item,index)=>{
+    const row=document.createElement('div'); row.className=`decision-item ${item.tone}`;
+    const mark=document.createElement('div'); mark.className='mark'; mark.textContent=item.tone==='success'?'✓':item.tone==='danger'?'!':'~';
+    const copy=document.createElement('div');
+    const title=document.createElement('strong'); title.textContent=`${index+1}. ${item.choiceText}`;
+    const detail=document.createElement('span'); detail.textContent=`${item.skill} · ${item.feedback}`;
+    copy.append(title,detail); row.append(mark,copy); container.append(row);
+  });
+}
+
 async function startGame(){
-  initAudio(); if(audioCtx&&audioCtx.state==='suspended') audioCtx.resume();
-  if(!cameraActive) await initMediaPipe();
-  
-  metrics={cash:100,moral:100,market:100,risk:30};
-  timeLeft=90; currentIdx=0;
-  scenarioOrder=[...scenarios.keys()].sort(()=>Math.random()-0.5);
+  clearIdleTimer();
+  initAudio();
+  if(audioCtx && audioCtx.state==='suspended') await audioCtx.resume();
+  if(!cameraActive && !cameraAttempted) initMediaPipe();
+
+  gameEnded=false;
+  locked=false;
+  clearAlerts();
+  metrics={...BASE_METRICS};
+  decisionHistory=[];
+  timeLeft=ROUND_SECONDS;
+  currentIdx=0;
+  document.documentElement.style.setProperty('--uniara-red','#ED1C24');
+  $('timer').textContent=timeLeft;
+  $('timer').classList.remove('critical');
+  scenarioOrder=shuffle([...scenarios.keys()]).slice(0,ROUND_SCENARIOS);
   updateMetrics();
   $('start-screen').style.display='none';
   $('end-screen').classList.add('hidden');
   $('game-app').style.display='flex';
   nextScenario();
+  updateCompanyState();
+  showAlert({tone:'warning',code:'COMUNICADO DA DIRETORIA',title:'A empresa está sob pressão.',message:'Três decisões. Quarenta e cinco segundos. Cada indicador pode virar o próximo alerta.',impact:'CAIXA, MORAL, MERCADO E RISCO: monitore tudo.'},3400);
   clearInterval(timerInterval);
   timerInterval=setInterval(tick,1000);
 }
-function tick(){ timeLeft--; const t=$('timer'); t.textContent=timeLeft; t.classList.toggle('critical',timeLeft<=15); if(timeLeft<=0) endGame(); }
+function shuffle(items){
+  for(let i=items.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [items[i],items[j]]=[items[j],items[i]];
+  }
+  return items;
+}
+
+function tick(){
+  if(gameEnded) return;
+  timeLeft--;
+  const t=$('timer');
+  t.textContent=timeLeft;
+  t.classList.toggle('critical',timeLeft<=15);
+  if(timeLeft===15) showAlert({tone:'danger',code:'ALERTA DE PRAZO',title:'Restam 15 segundos para reagir.',message:'A diretoria precisa de uma decisão agora. O tempo está virando risco operacional.',impact:'NÃO DEIXE A CRISE DECIDIR POR VOCÊ.'},2200);
+  if(timeLeft===10) showAlert({tone:'danger',code:'CONTAGEM REGRESSIVA',title:'A janela de recuperação está fechando.',message:'Se o relógio zerar antes de duas decisões, nenhum perfil será revelado.',impact:'10 SEGUNDOS · ASSUMA O COMANDO.'},2200);
+  if(timeLeft===5) showAlert({tone:'danger',code:'ÚLTIMO AVISO',title:'A empresa está a cinco segundos do silêncio.',message:'Uma operação sem direção não sobrevive ao próximo impacto.',impact:'5... 4... 3...'},2200);
+  if(timeLeft<=0) endGame();
+}
 
 function applyDecisionTheme() {
   const theme = colorThemes[Math.floor(Math.random() * colorThemes.length)];
@@ -412,29 +650,45 @@ function applyDecisionTheme() {
 }
 
 function nextScenario(){
+  if(gameEnded) return;
   if(currentIdx>=scenarioOrder.length){endGame();return;}
-  applyDecisionTheme(); // Aplica nova paleta de cores a cada pergunta
+  applyDecisionTheme();
   const sc=scenarios[scenarioOrder[currentIdx]];
-  $('sc-tag').textContent=sc.tag;
+  $('sc-tag').textContent=`DECISÃO ${currentIdx+1}/${ROUND_SCENARIOS} · ${sc.skill.toUpperCase()}`;
   $('sc-text').textContent=sc.text;
+  $('sc-hint').textContent='Escolha uma ação. Cada decisão revela uma competência de gestão.';
   $('sc-text').classList.remove('glitch'); void $('sc-text').offsetWidth;
   $('sc-text').classList.add('glitch');
-  $('dec-a-text').textContent=sc.a.t; $('dec-b-text').textContent=sc.b.t;
+  $('dec-a-text').textContent=sc.a.t;
+  $('dec-b-text').textContent=sc.b.t;
   locked=false;
 }
 function choose(side){
-  if(locked) return; locked=true;
-  const sc=scenarios[scenarioOrder[currentIdx]]; const dec=side==='a'?sc.a:sc.b; const d=dec.d;
-  Object.keys(d).forEach(k=>{ metrics[k]=Math.max(0,Math.min(150,metrics[k]+d[k])); flashMetric(k,d[k]>0); });
+  if(locked || gameEnded) return;
+  locked=true;
+  const sc=scenarios[scenarioOrder[currentIdx]];
+  const dec=side==='a'?sc.a:sc.b;
+  const d=dec.d;
+  const feedback=classifyDecision(d);
+  decisionHistory.push({scenario:sc.tag,skill:sc.skill,choice:side,choiceText:dec.t,impact:d,tone:feedback.tone,feedback:feedback.title});
+  Object.keys(d).forEach(k=>{ metrics[k]=Math.max(0,Math.min(100,metrics[k]+d[k])); flashMetric(k,d[k]>0); });
   updateMetrics();
+  const state=updateCompanyState(true);
+  showAlert({tone:feedback.tone,code:feedback.code,title:feedback.title,message:feedback.message,impact:impactSummary(d)},3200);
+  if(state.tone==='danger') showAlert({tone:'danger',code:'ALERTA: EMPRESA EM APUROS',title:state.label,message:state.detail,impact:'A próxima decisão pode ser a última.'},3600);
+  else if(state.tone==='success') showAlert({tone:'success',code:'SINAL DE RECUPERAÇÃO',title:'A empresa voltou a respirar.',message:state.detail,impact:'Mantenha o equilíbrio até o fim da rodada.'},3200);
   const app=$('game-app'); const x=window.innerWidth/2, y=window.innerHeight/2;
   const isCrisis=Math.abs(d.cash)>=20||Math.abs(d.moral)>=20;
   if(isCrisis){ playCrisis(); setMood('crisis'); $('flash').className='flash-overlay crisis show'; app.classList.add('shake'); burst(x,y,80); setTimeout(()=>app.classList.remove('shake'),500); }
   else if(d.cash+d.moral+d.market-d.risk>0){ playSuccess(); setMood('success'); $('flash').className='flash-overlay success show'; burst(x,y,50); }
   else{ playError(); setMood('error'); $('flash').className='flash-overlay error show'; app.classList.add('shake'); burst(x,y,40); setTimeout(()=>app.classList.remove('shake'),500); }
   setTimeout(()=>{$('flash').classList.remove('show');setMood('neutral');},500);
-  setTimeout(()=>{currentIdx++;nextScenario();},1400);
-  if(metrics.cash<=0||metrics.moral<=0){setTimeout(endGame,1400);}
+  const mustEnd=currentIdx+1>=scenarioOrder.length || metrics.cash<=0 || metrics.moral<=0;
+  setTimeout(()=>{
+    currentIdx++;
+    if(mustEnd) endGame();
+    else nextScenario();
+  },1500);
 }
 function flashMetric(k,up){ const el=document.querySelector('.metric.'+k); el.classList.remove('flash-up','flash-down'); void el.offsetWidth; el.classList.add(up?'flash-up':'flash-down'); }
 function updateMetrics(){
@@ -444,40 +698,106 @@ function updateMetrics(){
   $('f-market').style.width=metrics.market+'%'; $('f-risk').style.width=metrics.risk+'%';
 }
 function endGame(){
+  if(gameEnded) return;
+  gameEnded=true;
+  locked=true;
   clearInterval(timerInterval);
+  const completed=decisionHistory.length>=MIN_DECISIONS_FOR_PROFILE;
   const alive=metrics.cash>0&&metrics.moral>0;
-  const score=(metrics.cash+metrics.moral+metrics.market+(100-metrics.risk))/4;
-  const win=alive&&score>55;
+  const score=Math.round((metrics.cash+metrics.moral+metrics.market+(100-metrics.risk))/4);
+  const hasProfile=completed&&alive;
+  const outcome=finalOutcome(completed,alive,score);
+  clearAlerts();
+  $('start-screen').style.display='none';
   $('game-app').style.display='none';
   $('end-screen').classList.remove('hidden');
-  $('end-title-text').setAttribute('data-text',win?'SOBREVIVEU':'FALIU');
-  $('end-title-text').textContent=win?'SOBREVIVEU':'FALIU';
-  if(win){document.documentElement.style.setProperty('--uniara-red','#39ff14');} else{document.documentElement.style.setProperty('--uniara-red','#ED1C24');}
-  playFinal(win);
-  if(win){setMood('success');burst(innerWidth/2,innerHeight/2,120);setTimeout(()=>burst(innerWidth/4,innerHeight/2,60),300);setTimeout(()=>burst(innerWidth*3/4,innerHeight/2,60),500);} else{setMood('error');}
+  const endTitle=outcome.tone==='success'?'EMPRESA SALVA':outcome.tone==='warning'?'SOBREVIVÊNCIA':'MISSÃO INTERROMPIDA';
+  $('end-title-text').setAttribute('data-text',endTitle);
+  $('end-title-text').textContent=endTitle;
+  document.documentElement.style.setProperty('--uniara-red',outcome.tone==='success'?'#39ff14':outcome.tone==='warning'?'#ffaa00':'#ED1C24');
+  $('outcome-banner').className=`outcome-banner ${outcome.tone}`;
+  $('outcome-kicker').textContent=outcome.kicker;
+  $('outcome-headline').textContent=outcome.title;
+  $('outcome-detail').textContent=outcome.detail;
+  showAlert({tone:outcome.tone,code:outcome.kicker,title:outcome.title,message:outcome.detail,impact:`ÍNDICE DE COMANDO ${score}/100`},4200);
+  playFinal(outcome.tone==='success');
+  if(outcome.tone==='success'){
+    setMood('success');
+    burst(innerWidth/2,innerHeight/2,120);
+    setTimeout(()=>burst(innerWidth/4,innerHeight/2,60),300);
+    setTimeout(()=>burst(innerWidth*3/4,innerHeight/2,60),500);
+  }else if(outcome.tone==='warning'){
+    setMood('crisis'); burst(innerWidth/2,innerHeight/2,55);
+  }else{
+    setMood('error');
+  }
   const rows=$('report-rows');
-  rows.innerHTML=`<div class="report-row"><span class="k">◼ CAIXA FINAL</span><span class="v" style="color:var(--cash)">${Math.round(metrics.cash)}%</span></div><div class="report-row"><span class="k">◼ MORAL DA EQUIPE</span><span class="v" style="color:var(--moral)">${Math.round(metrics.moral)}%</span></div><div class="report-row"><span class="k">◼ MARKET SHARE</span><span class="v" style="color:var(--market)">${Math.round(metrics.market)}%</span></div><div class="report-row"><span class="k">◼ NÍVEL DE RISCO</span><span class="v" style="color:var(--risk)">${Math.round(metrics.risk)}%</span></div><div class="report-row"><span class="k">◼ DECISÕES TOMADAS</span><span class="v">${currentIdx}</span></div>`;
-  const profile=defineProfile(metrics,win);
-  $('profile').textContent=profile.title; $('verdict').textContent=profile.verdict;
-  
-  // QR Code apontando para o site da UNIARA
-  const data=encodeURIComponent("https://www.uniara.br/graduacao/administracao?utm_source=feira&utm_campaign=crisis&score="+Math.round(score));
-  $('qr-final').innerHTML=`<img src='https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${data}' width='140' height='140' alt='Curso de Administração UNIARA'>`;
+  rows.innerHTML=`<div class="report-row"><span class="k">◼ STATUS FINAL</span><span class="v">${outcome.tone==='success'?'EMPRESA SALVA':outcome.tone==='warning'?'EM ALERTA':'COLAPSO'}</span></div><div class="report-row"><span class="k">◼ ÍNDICE DE COMANDO</span><span class="v">${score}/100</span></div><div class="report-row"><span class="k">◼ CAIXA</span><span class="v" style="color:var(--cash)">${Math.round(metrics.cash)}%</span></div><div class="report-row"><span class="k">◼ MORAL</span><span class="v" style="color:var(--moral)">${Math.round(metrics.moral)}%</span></div><div class="report-row"><span class="k">◼ MERCADO</span><span class="v" style="color:var(--market)">${Math.round(metrics.market)}%</span></div><div class="report-row"><span class="k">◼ RISCO</span><span class="v" style="color:var(--risk)">${Math.round(metrics.risk)}%</span></div><div class="report-row"><span class="k">◼ DECISÕES</span><span class="v">${decisionHistory.length}/${ROUND_SCENARIOS}</span></div>`;
+  const profile=defineProfile(metrics,hasProfile);
+  $('profile').textContent=profile.title;
+  $('verdict').textContent=profile.verdict;
+  $('cta-copy').hidden=!hasProfile;
+  $('reset-note').textContent='A tela voltará ao início automaticamente em 30 segundos.';
+  renderDecisionSummary();
+  $('qr-final').replaceChildren();
+  if(hasProfile){
+    const landingUrl=new URL(PROFILE_LANDING_PAGE);
+    landingUrl.searchParams.set('utm_source','feira');
+    landingUrl.searchParams.set('utm_campaign','crisis');
+    landingUrl.searchParams.set('profile',profile.slug);
+    landingUrl.searchParams.set('score',String(score));
+    landingUrl.searchParams.set('skills',decisionHistory.map(item=>item.skill).join(','));
+
+    const qrUrl=new URL('https://api.qrserver.com/v1/create-qr-code/');
+    qrUrl.searchParams.set('size','180x180');
+    qrUrl.searchParams.set('data',landingUrl.toString());
+
+    const qrImage=document.createElement('img');
+    qrImage.src=qrUrl.toString();
+    qrImage.width=180;
+    qrImage.height=180;
+    qrImage.loading='eager';
+    qrImage.alt='Receber meu perfil de gestor e conhecer Administração na UNIARA';
+    $('qr-final').append(qrImage);
+  }
   setTimeout(()=>setMood('neutral'),3000);
+  armIdleTimer();
 }
-function defineProfile(m,win){
-  if(!win) return {title:"💀 O IMPÉRIO DESABOU",verdict:"Caixa ou moral chegaram a zero. A empresa não resistiu às suas decisões. É exatamente por isso que o curso de Administração da UNIARA existe — para formar gestores que antecipam crises antes que elas cheguem."};
-  if(m.cash>=90&&m.market>=90) return {title:"🏆 VISIONÁRIO DE MERCADO",verdict:"Você equilibrou lucro, pessoas e expansão. Esse é o perfil que o mercado disputa — e que o curso de Administração da UNIARA forma strategicamente ao longo da graduação."};
-  if(m.moral>=90) return {title:"👥 LÍDER DE PESSOAS",verdict:"Protegeu a equipe mesmo com custo. Gestão de pessoas é a competência mais valorizada nas organizações modernas — e um dos pilares da Administração na UNIARA."};
-  if(m.risk<=40) return {title:"🛡 MESTRE DO RISCO",verdict:"Manteve a empresa viva com decisões calculadas. Gestão de risco é o que separa amadores de administradores profissionais. A UNIARA transforma esse instinto em método."};
-  return {title:"⚔ SOBREVIVENTE",verdict:"A empresa resistiu, mas sangrou. Administrar é decidir sob incerteza, com recursos limitados. O curso de Administração da UNIARA dá as ferramentas para fazer isso com excelência."};
+function defineProfile(m,hasProfile){
+  if(!hasProfile) return {
+    slug:'missao-interrompida',
+    title:'MISSÃO INTERROMPIDA',
+    verdict:'Você não concluiu decisões suficientes para revelar seu perfil. Tente novamente: em Administração, cada escolha muda o rumo do negócio.'
+  };
+  if(m.moral>=m.cash+8) return {
+    slug:'lideranca',
+    title:'LÍDER DE PESSOAS',
+    verdict:'Você colocou confiança, cultura e equipe no centro das escolhas. Esse olhar é essencial para quem quer liderar organizações.'
+  };
+  if(m.market>=86) return {
+    slug:'estrategia',
+    title:'ESTRATEGISTA DE CRESCIMENTO',
+    verdict:'Suas decisões priorizaram mercado, diferenciação e oportunidades. Você tem afinidade com estratégia e posicionamento de negócios.'
+  };
+  if(m.risk<=22 || m.cash>=88) return {
+    slug:'gestao-financeira',
+    title:'GUARDIÃO FINANCEIRO',
+    verdict:'Você protegeu recursos e tomou decisões calculadas. Gestão financeira e análise de risco parecem combinar com o seu perfil.'
+  };
+  return {
+    slug:'inovacao',
+    title:'INOVADOR DE NEGÓCIOS',
+    verdict:'Você equilibrou cenários diferentes e buscou adaptação. Inovação, negociação e criação de soluções são forças do seu perfil.'
+  };
 }
 
  $('start-btn').addEventListener('click',startGame);
  $('restart-btn').addEventListener('click',startGame);
  $('dec-a').addEventListener('click',()=>choose('a'));
  $('dec-b').addEventListener('click',()=>choose('b'));
-addEventListener('dblclick',()=>{if(!document.fullscreenElement) document.documentElement.requestFullscreen();});
+addEventListener('dblclick',()=>{
+  if(!document.fullscreenElement) document.documentElement.requestFullscreen().catch(()=>{});
+});
 </script>
 </body>
 </html>
