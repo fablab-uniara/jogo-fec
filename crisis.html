@@ -115,24 +115,27 @@ body{cursor:default;}
 @keyframes flash{0%{opacity:0;}20%{opacity:1;}100%{opacity:0;}}
 
 /* Alertas narrativos e leitura imediata do estado da empresa */
-.alert-stack{position:fixed;top:86px;right:24px;z-index:14;display:grid;gap:10px;width:min(390px,calc(100vw - 32px));pointer-events:none;}
-.alert-card{position:relative;overflow:hidden;padding:13px 15px 14px;border:1px solid rgba(255,170,0,.65);border-left:4px solid var(--neon-amber);border-radius:4px;background:rgba(10,10,18,.94);box-shadow:0 12px 32px rgba(0,0,0,.45),0 0 24px rgba(255,170,0,.12);backdrop-filter:blur(10px);animation:alertIn .35s cubic-bezier(.2,.8,.2,1) both;}
-.alert-card::after{content:'';position:absolute;left:0;right:0;bottom:0;height:2px;background:var(--neon-amber);transform-origin:left;animation:alertTimer 2.8s linear both;}
-.alert-card.danger{border-color:rgba(255,34,34,.72);border-left-color:var(--neon-red);box-shadow:0 12px 32px rgba(0,0,0,.45),0 0 28px rgba(237,28,36,.18);}
+.alert-stack{position:fixed;inset:0;z-index:14;display:grid;place-items:center;padding:24px;pointer-events:none;}
+.alert-stack::before{content:'';position:absolute;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(3px);opacity:0;transition:opacity .25s;}
+.alert-stack.has-alert{pointer-events:auto;}
+.alert-stack.has-alert::before{opacity:1;}
+.alert-card{--alert-duration:5200ms;position:relative;z-index:1;width:min(720px,calc(100vw - 48px));max-height:calc(100vh - 48px);overflow:hidden;padding:30px 34px 32px;border:2px solid rgba(255,170,0,.78);border-left:8px solid var(--neon-amber);border-radius:6px;background:rgba(7,7,12,.97);box-shadow:0 24px 80px rgba(0,0,0,.72),0 0 56px rgba(255,170,0,.2);backdrop-filter:blur(12px);text-align:center;animation:alertIn .45s cubic-bezier(.2,.8,.2,1) both;}
+.alert-card::after{content:'';position:absolute;left:0;right:0;bottom:0;height:4px;background:var(--neon-amber);transform-origin:left;animation:alertTimer var(--alert-duration) linear both;}
+.alert-card.danger{border-color:rgba(255,34,34,.9);border-left-color:var(--neon-red);box-shadow:0 24px 80px rgba(0,0,0,.72),0 0 64px rgba(237,28,36,.3);}
 .alert-card.danger::after{background:var(--neon-red);}
-.alert-card.success{border-color:rgba(57,255,20,.72);border-left-color:var(--neon-green);box-shadow:0 12px 32px rgba(0,0,0,.45),0 0 28px rgba(57,255,20,.15);}
+.alert-card.success{border-color:rgba(57,255,20,.9);border-left-color:var(--neon-green);box-shadow:0 24px 80px rgba(0,0,0,.72),0 0 64px rgba(57,255,20,.25);}
 .alert-card.success::after{background:var(--neon-green);}
-.alert-card .alert-code{display:block;margin-bottom:5px;color:var(--neon-amber);font-size:.62rem;font-weight:700;letter-spacing:.18em;}
+.alert-card .alert-code{display:block;margin-bottom:12px;color:var(--neon-amber);font-size:.78rem;font-weight:700;letter-spacing:.2em;}
 .alert-card.danger .alert-code{color:var(--neon-red);}
 .alert-card.success .alert-code{color:var(--neon-green);}
-.alert-card strong{display:block;color:#fff;font-size:.93rem;letter-spacing:.04em;line-height:1.2;}
-.alert-card p{margin:6px 0 0;color:#d9d9e4;font-size:.78rem;line-height:1.4;}
-.alert-card .alert-impact{margin-top:8px;color:var(--neon-amber);font-size:.68rem;font-weight:700;letter-spacing:.04em;line-height:1.35;}
-.alert-card.danger .alert-impact{color:#ff7a7a;}
+.alert-card strong{display:block;color:#fff;font-size:clamp(1.3rem,3.1vw,2rem);letter-spacing:.055em;line-height:1.12;text-transform:uppercase;}
+.alert-card p{margin:14px auto 0;max-width:610px;color:#e7e7ef;font-size:clamp(.92rem,1.55vw,1.08rem);line-height:1.5;}
+.alert-card .alert-impact{margin-top:18px;color:var(--neon-amber);font-size:clamp(.72rem,1.1vw,.86rem);font-weight:700;letter-spacing:.07em;line-height:1.45;}
+.alert-card.danger .alert-impact{color:#ff8888;}
 .alert-card.success .alert-impact{color:#9bff87;}
-.alert-card.hide{animation:alertOut .25s ease-in both;}
-@keyframes alertIn{from{opacity:0;transform:translateX(110%);}to{opacity:1;transform:translateX(0);}}
-@keyframes alertOut{from{opacity:1;transform:translateX(0);}to{opacity:0;transform:translateX(110%);}}
+.alert-card.hide{animation:alertOut .3s ease-in both;}
+@keyframes alertIn{from{opacity:0;transform:scale(.94) translateY(18px);}to{opacity:1;transform:scale(1) translateY(0);}}
+@keyframes alertOut{from{opacity:1;transform:scale(1) translateY(0);}to{opacity:0;transform:scale(.97) translateY(10px);}}
 @keyframes alertTimer{from{transform:scaleX(1);}to{transform:scaleX(0);}}
 
 .crisis-state{display:flex;align-items:center;gap:10px;min-height:34px;margin-bottom:14px;padding:8px 12px;border:1px solid rgba(255,170,0,.28);border-radius:3px;background:rgba(255,170,0,.06);color:var(--neon-amber);font-size:.68rem;letter-spacing:.13em;transition:all .35s;}
@@ -218,10 +221,12 @@ body{cursor:default;}
 	  #webcam{width:100px;height:75px;bottom:10px;right:10px;}
 	  #uniara-watermark{height:26px;top:12px;right:12px;}
 		  .audio-note{display:none;}
-		  .alert-stack{top:74px;right:16px;width:calc(100vw - 32px);}
-		  .alert-card{padding:11px 12px 12px;}
-		  .alert-card strong{font-size:.82rem;}
-		  .alert-card p{font-size:.7rem;}
+		  .alert-stack{padding:16px;}
+		  .alert-card{width:calc(100vw - 32px);padding:24px 18px 26px;border-left-width:6px;}
+		  .alert-card .alert-code{font-size:.62rem;}
+		  .alert-card strong{font-size:1.18rem;}
+		  .alert-card p{margin-top:11px;font-size:.8rem;line-height:1.45;}
+		  .alert-card .alert-impact{margin-top:14px;font-size:.64rem;}
 		  .crisis-state{align-items:flex-start;flex-wrap:wrap;gap:5px 8px;font-size:.58rem;}
 		  .crisis-state strong{font-size:.62rem;}
 		  .crisis-state .state-detail{width:100%;margin-left:0;text-align:left;font-size:.55rem;}
@@ -551,10 +556,16 @@ function updateCompanyState(pulse=false){
   return state;
 }
 
-function showAlert({tone='warning',code='COMUNICADO DA DIRETORIA',title='',message='',impact=''},duration=2800){
+function showAlert({tone='warning',code='COMUNICADO DA DIRETORIA',title='',message='',impact=''},duration=5200){
   const stack=$('alert-stack');
+  alertTimers.forEach(clearTimeout); alertTimers=[];
+  stack.replaceChildren();
+  stack.classList.add('has-alert');
   const card=document.createElement('article');
   card.className=`alert-card ${tone}`;
+  card.setAttribute('role','alertdialog');
+  card.setAttribute('aria-modal','true');
+  card.style.setProperty('--alert-duration',`${duration}ms`);
   const codeEl=document.createElement('span'); codeEl.className='alert-code'; codeEl.textContent=code;
   const titleEl=document.createElement('strong'); titleEl.textContent=title;
   const messageEl=document.createElement('p'); messageEl.textContent=message;
@@ -562,14 +573,14 @@ function showAlert({tone='warning',code='COMUNICADO DA DIRETORIA',title='',messa
   card.append(codeEl,titleEl,messageEl);
   if(impact) card.append(impactEl);
   stack.prepend(card);
-  const remove=()=>{card.classList.add('hide');setTimeout(()=>card.remove(),260);};
+  const remove=()=>{card.classList.add('hide');setTimeout(()=>{if(card.isConnected) card.remove();if(!stack.children.length) stack.classList.remove('has-alert');},320);};
   const timer=setTimeout(remove,duration);
   alertTimers.push(timer);
-  while(stack.children.length>3){stack.lastElementChild.remove();}
 }
 
 function clearAlerts(){
-  alertTimers.forEach(clearTimeout); alertTimers=[]; $('alert-stack').replaceChildren();
+  alertTimers.forEach(clearTimeout); alertTimers=[];
+  const stack=$('alert-stack'); stack.replaceChildren(); stack.classList.remove('has-alert');
 }
 
 function finalOutcome(completed,alive,score){
@@ -616,7 +627,7 @@ async function startGame(){
   $('game-app').style.display='flex';
   nextScenario();
   updateCompanyState();
-  showAlert({tone:'warning',code:'COMUNICADO DA DIRETORIA',title:'A empresa está sob pressão.',message:'Três decisões. Quarenta e cinco segundos. Cada indicador pode virar o próximo alerta.',impact:'CAIXA, MORAL, MERCADO E RISCO: monitore tudo.'},3400);
+  showAlert({tone:'warning',code:'COMUNICADO DA DIRETORIA',title:'A empresa está sob pressão.',message:'Três decisões. Quarenta e cinco segundos. Cada indicador pode virar o próximo alerta.',impact:'CAIXA, MORAL, MERCADO E RISCO: monitore tudo.'},5600);
   clearInterval(timerInterval);
   timerInterval=setInterval(tick,1000);
 }
@@ -674,9 +685,9 @@ function choose(side){
   Object.keys(d).forEach(k=>{ metrics[k]=Math.max(0,Math.min(100,metrics[k]+d[k])); flashMetric(k,d[k]>0); });
   updateMetrics();
   const state=updateCompanyState(true);
-  showAlert({tone:feedback.tone,code:feedback.code,title:feedback.title,message:feedback.message,impact:impactSummary(d)},3200);
-  if(state.tone==='danger') showAlert({tone:'danger',code:'ALERTA: EMPRESA EM APUROS',title:state.label,message:state.detail,impact:'A próxima decisão pode ser a última.'},3600);
-  else if(state.tone==='success') showAlert({tone:'success',code:'SINAL DE RECUPERAÇÃO',title:'A empresa voltou a respirar.',message:state.detail,impact:'Mantenha o equilíbrio até o fim da rodada.'},3200);
+  showAlert({tone:feedback.tone,code:feedback.code,title:feedback.title,message:feedback.message,impact:impactSummary(d)},5200);
+  if(state.tone==='danger') alertTimers.push(setTimeout(()=>showAlert({tone:'danger',code:'ALERTA: EMPRESA EM APUROS',title:state.label,message:state.detail,impact:'A próxima decisão pode ser a última.'},5200),5400));
+  else if(state.tone==='success') alertTimers.push(setTimeout(()=>showAlert({tone:'success',code:'SINAL DE RECUPERAÇÃO',title:'A empresa voltou a respirar.',message:state.detail,impact:'Mantenha o equilíbrio até o fim da rodada.'},4800),5400));
   const app=$('game-app'); const x=window.innerWidth/2, y=window.innerHeight/2;
   const isCrisis=Math.abs(d.cash)>=20||Math.abs(d.moral)>=20;
   if(isCrisis){ playCrisis(); setMood('crisis'); $('flash').className='flash-overlay crisis show'; app.classList.add('shake'); burst(x,y,80); setTimeout(()=>app.classList.remove('shake'),500); }
@@ -684,11 +695,12 @@ function choose(side){
   else{ playError(); setMood('error'); $('flash').className='flash-overlay error show'; app.classList.add('shake'); burst(x,y,40); setTimeout(()=>app.classList.remove('shake'),500); }
   setTimeout(()=>{$('flash').classList.remove('show');setMood('neutral');},500);
   const mustEnd=currentIdx+1>=scenarioOrder.length || metrics.cash<=0 || metrics.moral<=0;
+  const decisionHold=state.tone==='danger'?11200:state.tone==='success'?10400:5600;
   setTimeout(()=>{
     currentIdx++;
     if(mustEnd) endGame();
     else nextScenario();
-  },1500);
+  },decisionHold);
 }
 function flashMetric(k,up){ const el=document.querySelector('.metric.'+k); el.classList.remove('flash-up','flash-down'); void el.offsetWidth; el.classList.add(up?'flash-up':'flash-down'); }
 function updateMetrics(){
@@ -719,7 +731,7 @@ function endGame(){
   $('outcome-kicker').textContent=outcome.kicker;
   $('outcome-headline').textContent=outcome.title;
   $('outcome-detail').textContent=outcome.detail;
-  showAlert({tone:outcome.tone,code:outcome.kicker,title:outcome.title,message:outcome.detail,impact:`ÍNDICE DE COMANDO ${score}/100`},4200);
+  showAlert({tone:outcome.tone,code:outcome.kicker,title:outcome.title,message:outcome.detail,impact:`ÍNDICE DE COMANDO ${score}/100`},6500);
   playFinal(outcome.tone==='success');
   if(outcome.tone==='success'){
     setMood('success');

@@ -24,3 +24,8 @@ Uma decisão de alto impacto exibiu um alerta com título, explicação e varia�
 A tela final foi ampliada com `EMPRESA SALVA`, `VOCÊ SALVOU A EMPRESA.`, classificações de sobrevivência ou colapso, índice de comando, status final e o bloco `SUAS DECISÕES DE COMANDO`. Uma simulação positiva controlada confirmou a presença do resumo de três decisões, a geração do QR Code e a rolagem interna para telas menores.
 
 A sintaxe dos JavaScripts embutidos em `crisis_feira.html`, `index.html` e `perfil.html` foi conferida sem erros após a sincronização das entradas principais.
+
+
+## Ajuste de legibilidade dos alertas
+
+Os alertas passaram a aparecer no centro da tela, com o restante da interface escurecido e desfocado visualmente. A caixa de mensagem foi ampliada, o texto foi aumentado e a barra inferior acompanha o tempo real de exibição. O alerta inicial dura aproximadamente 5,6 segundos; as consequências duram aproximadamente 5,2 segundos, e estados críticos podem prolongar a pausa antes da decisão seguinte.
