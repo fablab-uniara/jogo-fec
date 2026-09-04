@@ -28,4 +28,4 @@ A sintaxe dos JavaScripts embutidos em `crisis_feira.html`, `index.html` e `perf
 
 ## Ajuste de legibilidade dos alertas
 
-Os alertas passaram a aparecer no centro da tela, com o restante da interface escurecido e desfocado visualmente. A caixa de mensagem foi ampliada, o texto foi aumentado e a barra inferior acompanha o tempo real de exibição. O alerta inicial dura aproximadamente 5,6 segundos; as consequências duram aproximadamente 5,2 segundos, e estados críticos podem prolongar a pausa antes da decisão seguinte.
+Os alertas passaram a aparecer no centro da tela, com o restante da interface escurecido, texturizado e desfocado visualmente. A caixa de mensagem foi ampliada, o texto foi aumentado, a moldura ganhou pulsação nos estados críticos e a barra inferior acompanha o tempo real de exibição. O alerta inicial dura aproximadamente 12 segundos; as consequências comuns duram aproximadamente 10 segundos; estados críticos duram aproximadamente 12 segundos; e o resultado final dura aproximadamente 14 segundos. O cronômetro pausa enquanto o alerta está aberto.

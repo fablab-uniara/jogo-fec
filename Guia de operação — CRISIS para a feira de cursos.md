@@ -20,7 +20,7 @@ Após 30 segundos na tela de resultado, a experiência volta automaticamente à 
 
 A camada dramática agora comunica a consequência de cada escolha em tempo real. Depois de uma decisão, o jogo exibe um alerta contextual com o efeito nos indicadores, atualiza o status da operação e pode disparar mensagens como `ALERTA: DECISÃO AGRAVOU A CRISE`, `EMPRESA EM APUROS`, `SINAL DE RECUPERAÇÃO` ou `A empresa ganhou fôlego.`. O cronômetro também gera avisos progressivos aos 15, 10 e 5 segundos para aumentar a urgência sem mudar a estrutura de três decisões.
 
-Os alertas foram desenhados como intervenções centrais: o fundo escurece, a mensagem aparece ampliada no centro da tela e uma barra inferior acompanha o tempo de leitura. O alerta inicial permanece por aproximadamente 5,6 segundos; as consequências de decisão permanecem por aproximadamente 5,2 segundos, e estados de recuperação ou perigo podem segurar a próxima decisão por até 10,4 ou 11,2 segundos. Durante a mensagem, os botões ficam temporariamente bloqueados para que o visitante consiga ler antes de continuar.
+Os alertas foram desenhados como intervenções centrais: o fundo escurece e ganha textura, o jogo ao fundo é desfocado, a mensagem aparece ampliada no centro da tela e uma barra inferior acompanha o tempo de leitura. O alerta inicial permanece por aproximadamente 12 segundos; as consequências comuns permanecem por aproximadamente 10 segundos; estados de perigo permanecem por aproximadamente 12 segundos; e o resultado final permanece por aproximadamente 14 segundos. Durante a mensagem, os botões ficam temporariamente bloqueados e o cronômetro pausa para que o visitante consiga ler antes de continuar. Alertas de perigo também recebem pulsação visual e sinal sonoro dedicado.
 
 A tela final ganhou um balanço narrativo explícito. Em resultados fortes, o visitante vê `EMPRESA SALVA` e `VOCÊ SALVOU A EMPRESA.`; em resultados intermediários, recebe uma leitura de sobrevivência ou alerta de continuidade; em resultados insuficientes, a experiência informa colapso operacional ou missão interrompida. O bloco `SUAS DECISÕES DE COMANDO` registra cada escolha, competência observada e leitura de impacto, preservando o QR Code e o fluxo de perfil quando a partida é concluída.
 
@@ -42,7 +42,7 @@ Quando o jogo é aberto diretamente como arquivo local (`file://`), o QR Code us
 | Navegador | Abra em tela cheia. O duplo clique também solicita tela cheia quando permitido. |
 | Câmera | Trate-a como opcional: faça uma rodada inteira somente por toque. |
 | Retorno | Espere 30 segundos na tela final e confirme a volta automática para a chamada de abertura. |
-| Impacto | Faça uma rodada com decisões difíceis e confirme os alertas centrais ampliados, status `EMPRESA EM APUROS` e resumo final das decisões. Aguarde a mensagem desaparecer antes de tentar a próxima escolha. |
+| Impacto | Faça uma rodada com decisões difíceis e confirme os alertas centrais ampliados, status `EMPRESA EM APUROS` e resumo final das decisões. Aguarde a mensagem desaparecer antes de tentar a próxima escolha; o cronômetro deve permanecer pausado durante a leitura. |
 
 ## Ajustes rápidos no código
 
