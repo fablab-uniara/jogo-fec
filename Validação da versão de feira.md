@@ -10,14 +10,14 @@ O encerramento sem decisões foi acionado para testar a regra de partida incompl
 
 Após um ajuste de robustez, foi repetido o encerramento sem decisões para confirmar que a tela inicial é ocultada antes de a tela final aparecer.
 
-O temporizador de inatividade foi acionado com atraso reduzido durante o teste para validar o retorno automático ao modo de atração.
+O temporizador de inatividade foi acionado com atraso reduzido durante o teste da versão anterior para validar o retorno automático ao modo de atração.
 
-A validação final de sintaxe JavaScript foi concluída sem erros para `crisis_feira.html` e `perfil.html`. O retorno automático por inatividade também foi confirmado: após o temporizador de teste, a interface voltou à chamada inicial pronta para o próximo visitante.
+A validação final de sintaxe JavaScript foi concluída sem erros para `crisis_feira.html` e `perfil.html`. O retorno automático por inatividade foi confirmado na versão anterior; na versão atual, a tela final permanece aberta até o reinício manual.
 
 
 ## Validação da camada dramática
 
-A versão aprimorada manteve os 45 segundos, as três decisões, o retorno automático, o uso opcional da câmera e o QR Code condicionado à conclusão suficiente. Após o início, a interface apresentou o comunicado da diretoria e o status `OPERAÇÃO INSTÁVEL`.
+A versão aprimorada manteve os 45 segundos, as três decisões, o uso opcional da câmera e o QR Code condicionado à conclusão suficiente. Na versão atual, a tela final permanece aberta indefinidamente após a partida, garantindo tempo para escanear o QR Code; somente `JOGAR NOVAMENTE` inicia outra rodada. Após o início, a interface apresentou o comunicado da diretoria e o status `OPERAÇÃO INSTÁVEL`.
 
 Uma decisão de alto impacto exibiu um alerta com título, explicação e variação de caixa, moral, mercado e risco. Em uma sequência desfavorável, o jogo também apresentou `ALERTA: DECISÃO AGRAVOU A CRISE` e `ALERTA: EMPRESA EM APUROS`, enquanto o HUD refletia o risco elevado.
 
@@ -28,4 +28,4 @@ A sintaxe dos JavaScripts embutidos em `crisis_feira.html`, `index.html` e `perf
 
 ## Ajuste de legibilidade dos alertas
 
-Os alertas passaram a aparecer no centro da tela, com o restante da interface escurecido, texturizado e desfocado visualmente. A caixa de mensagem foi ampliada, o texto foi aumentado, a moldura ganhou pulsação nos estados críticos e a barra inferior acompanha o tempo real de exibição. O alerta inicial dura aproximadamente 12 segundos; as consequências comuns duram aproximadamente 10 segundos; estados críticos duram aproximadamente 12 segundos; e o resultado final dura aproximadamente 14 segundos. O cronômetro pausa enquanto o alerta está aberto.
+Os alertas passaram a aparecer no centro da tela, com o restante da interface escurecido, texturizado e desfocado visualmente. A caixa de mensagem foi ampliada, o texto foi aumentado, a moldura ganhou pulsação nos estados críticos e a barra inferior acompanha o tempo real de exibição. Após a redução solicitada, o alerta inicial dura aproximadamente 9 segundos; as consequências comuns duram aproximadamente 7 segundos; estados críticos duram aproximadamente 9 segundos; e o resultado final dura aproximadamente 11 segundos. O cronômetro pausa enquanto o alerta está aberto.
